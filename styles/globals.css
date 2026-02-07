@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 17% 98%;
+  --foreground: 204 74% 17%;
+  --card: 0 0% 100%;
+  --card-foreground: 204 74% 17%;
+  --primary: 199 75% 24%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 201 78% 90%;
+  --secondary-foreground: 204 74% 17%;
+  --muted: 201 46% 92%;
+  --muted-foreground: 204 22% 38%;
+  --accent: 202 63% 73%;
+  --accent-foreground: 204 74% 17%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 210 20% 88%;
+  --input: 210 20% 88%;
+  --ring: 199 75% 24%;
+
+  --radius-lg: 20px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+
+  --shadow-soft: 0 16px 32px rgba(15, 78, 107, 0.14);
+  --shadow-card: 0 10px 20px rgba(15, 78, 107, 0.12);
+
+  --font-sans: 'Manrope';
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+  font-feature-settings: 'ss01' on, 'ss02' on;
+}
+
+.container-page {
+  @apply mx-auto w-full max-w-6xl px-4 md:px-6;
+}
+
+.page-title {
+  @apply text-2xl font-semibold tracking-tight md:text-3xl;
+}
+
+.section-title {
+  @apply text-lg font-semibold;
+}
+
+.card-surface {
+  @apply rounded-lg border bg-card text-card-foreground shadow-card;
+}
+
+.tabbar-shadow {
+  box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.08);
+}
