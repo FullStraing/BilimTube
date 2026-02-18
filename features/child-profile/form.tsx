@@ -1,6 +1,7 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
+import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -75,19 +76,23 @@ export function ChildProfileForm() {
     }
 
     if (!res.ok) {
-      toast({ title: 'Ошибка', description: 'Не удалось сохранить профиль' });
+      const responsePayload = await res.json().catch(() => null);
+      toast({
+        title: 'Ошибка',
+        description: responsePayload?.error ?? 'Не удалось сохранить профиль'
+      });
       return;
     }
 
     toast({ title: 'Профиль создан', description: 'Добро пожаловать!' });
-    router.push('/home');
+    router.push('/parent/profiles' as Route);
   };
 
   return (
     <div className="min-h-screen bg-background px-6 py-8">
       <div className="mx-auto w-full max-w-md space-y-6">
         <Link
-          href="/auth/register"
+          href={'/parent/profiles' as Route}
           className="inline-flex h-10 w-10 items-center justify-center rounded-full text-primary transition hover:bg-secondary"
           aria-label="Назад"
         >

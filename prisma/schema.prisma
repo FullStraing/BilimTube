@@ -20,6 +20,7 @@ model User {
   updatedAt    DateTime       @updatedAt
   sessions     Session[]
   children     ChildProfile[]
+  favorites    Favorite[]
 }
 
 model Session {
@@ -34,17 +35,50 @@ model Session {
 }
 
 model ChildProfile {
-  id          String   @id @default(cuid())
-  userId      String
-  name        String
-  age         Int
-  avatarColor String
-  interests   String[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String   @id @default(cuid())
+  userId           String
+  name             String
+  age              Int
+  avatarColor      String
+  interests        String[]
+  dailyLimitMinutes Int      @default(120)
+  educationalOnly  Boolean  @default(false)
+  allowedAgeGroups String[] @default(["4-6", "7-9", "10-13"])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model Video {
+  id           String     @id @default(cuid())
+  slug         String     @unique
+  title        String
+  description  String
+  category     String
+  ageGroup     String
+  thumbnailUrl String
+  videoUrl     String
+  durationSec  Int
+  viewsCount   Int        @default(0)
+  isPublished  Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  favorites    Favorite[]
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  videoId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@index([userId])
+  @@index([videoId])
 }
 
 enum AccountType {

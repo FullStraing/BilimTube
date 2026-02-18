@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -57,6 +57,20 @@ export function LoginForm() {
   const [method, setMethod] = useState<'email' | 'phone'>('email');
   const [showPassword, setShowPassword] = useState(false);
   const [country, setCountry] = useState(countries[0]);
+  const [isCountryMenuOpen, setIsCountryMenuOpen] = useState(false);
+  const countryMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onPointerDown = (event: MouseEvent) => {
+      if (!countryMenuRef.current) return;
+      if (!countryMenuRef.current.contains(event.target as Node)) {
+        setIsCountryMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, []);
 
   const {
     register,
@@ -111,6 +125,7 @@ export function LoginForm() {
                 onClick={() => {
                   setMethod('email');
                   setValue('method', 'email');
+                  setIsCountryMenuOpen(false);
                 }}
               >
                 Email
@@ -151,40 +166,48 @@ export function LoginForm() {
                 <label className="text-sm font-semibold text-primary">
                   Номер телефона <span className="text-destructive">*</span>
                 </label>
-                <div className="grid grid-cols-[120px_1fr] gap-3">
-                  <button
-                    type="button"
-                    className="h-12 w-full rounded-[16px] border-2 border-[#D0D8DF] bg-white px-3 text-sm font-semibold text-primary"
-                  >
-                    {country.code} {country.dial}
-                  </button>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
-                      <Phone className="h-5 w-5" />
-                    </span>
-                    <Input
-                      className="h-12 rounded-[16px] border-2 border-[#D0D8DF] pl-12 text-sm"
-                      placeholder="(312) 123-456"
-                      {...register('identifier')}
-                    />
-                  </div>
-                </div>
-                <div className="rounded-[20px] border border-[#D0D8DF] bg-white shadow-soft">
-                  {countries.map((item) => (
+                <div ref={countryMenuRef} className="relative">
+                  <div className="grid grid-cols-[120px_1fr] gap-3">
                     <button
-                      key={item.code}
                       type="button"
-                      className={`flex w-full items-center justify-between px-4 py-3 text-sm font-semibold ${
-                        item.code === country.code ? 'bg-secondary text-primary' : 'text-primary'
-                      }`}
-                      onClick={() => setCountry(item)}
+                      className="h-12 w-full rounded-[16px] border-2 border-[#D0D8DF] bg-white px-3 text-sm font-semibold text-primary"
+                      onClick={() => setIsCountryMenuOpen((prev) => !prev)}
                     >
-                      <span>
-                        {item.code} {item.name}
-                      </span>
-                      <span>{item.dial}</span>
+                      {country.code} {country.dial}
                     </button>
-                  ))}
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
+                        <Phone className="h-5 w-5" />
+                      </span>
+                      <Input
+                        className="h-12 rounded-[16px] border-2 border-[#D0D8DF] pl-12 text-sm"
+                        placeholder="(312) 123-456"
+                        {...register('identifier')}
+                      />
+                    </div>
+                  </div>
+                  {isCountryMenuOpen ? (
+                    <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-30 max-h-72 overflow-auto rounded-[20px] border border-[#D0D8DF] bg-white shadow-soft">
+                      {countries.map((item) => (
+                        <button
+                          key={item.code}
+                          type="button"
+                          className={`flex w-full items-center justify-between px-4 py-3 text-sm font-semibold ${
+                            item.code === country.code ? 'bg-secondary text-primary' : 'text-primary'
+                          }`}
+                          onClick={() => {
+                            setCountry(item);
+                            setIsCountryMenuOpen(false);
+                          }}
+                        >
+                          <span>
+                            {item.code} {item.name}
+                          </span>
+                          <span>{item.dial}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
                 <FieldError message={errors.identifier?.message} />
               </div>
@@ -247,6 +270,20 @@ export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [country, setCountry] = useState(countries[0]);
+  const [isCountryMenuOpen, setIsCountryMenuOpen] = useState(false);
+  const countryMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onPointerDown = (event: MouseEvent) => {
+      if (!countryMenuRef.current) return;
+      if (!countryMenuRef.current.contains(event.target as Node)) {
+        setIsCountryMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, []);
 
   const {
     register,
@@ -342,6 +379,7 @@ export function RegisterForm() {
                 onClick={() => {
                   setMethod('email');
                   setValue('method', 'email');
+                  setIsCountryMenuOpen(false);
                 }}
               >
                 Email
@@ -382,40 +420,48 @@ export function RegisterForm() {
                 <label className="text-sm font-semibold text-primary">
                   Номер телефона <span className="text-destructive">*</span>
                 </label>
-                <div className="grid grid-cols-[120px_1fr] gap-3">
-                  <button
-                    type="button"
-                    className="h-12 w-full rounded-[16px] border-2 border-[#D0D8DF] bg-white px-3 text-sm font-semibold text-primary"
-                  >
-                    {country.code} {country.dial}
-                  </button>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
-                      <Phone className="h-5 w-5" />
-                    </span>
-                    <Input
-                      className="h-12 rounded-[16px] border-2 border-[#D0D8DF] pl-12 text-sm"
-                      placeholder="(312) 123-456"
-                      {...register('identifier')}
-                    />
-                  </div>
-                </div>
-                <div className="rounded-[20px] border border-[#D0D8DF] bg-white shadow-soft">
-                  {countries.map((item) => (
+                <div ref={countryMenuRef} className="relative">
+                  <div className="grid grid-cols-[120px_1fr] gap-3">
                     <button
-                      key={item.code}
                       type="button"
-                      className={`flex w-full items-center justify-between px-4 py-3 text-sm font-semibold ${
-                        item.code === country.code ? 'bg-secondary text-primary' : 'text-primary'
-                      }`}
-                      onClick={() => setCountry(item)}
+                      className="h-12 w-full rounded-[16px] border-2 border-[#D0D8DF] bg-white px-3 text-sm font-semibold text-primary"
+                      onClick={() => setIsCountryMenuOpen((prev) => !prev)}
                     >
-                      <span>
-                        {item.code} {item.name}
-                      </span>
-                      <span>{item.dial}</span>
+                      {country.code} {country.dial}
                     </button>
-                  ))}
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
+                        <Phone className="h-5 w-5" />
+                      </span>
+                      <Input
+                        className="h-12 rounded-[16px] border-2 border-[#D0D8DF] pl-12 text-sm"
+                        placeholder="(312) 123-456"
+                        {...register('identifier')}
+                      />
+                    </div>
+                  </div>
+                  {isCountryMenuOpen ? (
+                    <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-30 max-h-72 overflow-auto rounded-[20px] border border-[#D0D8DF] bg-white shadow-soft">
+                      {countries.map((item) => (
+                        <button
+                          key={item.code}
+                          type="button"
+                          className={`flex w-full items-center justify-between px-4 py-3 text-sm font-semibold ${
+                            item.code === country.code ? 'bg-secondary text-primary' : 'text-primary'
+                          }`}
+                          onClick={() => {
+                            setCountry(item);
+                            setIsCountryMenuOpen(false);
+                          }}
+                        >
+                          <span>
+                            {item.code} {item.name}
+                          </span>
+                          <span>{item.dial}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
                 <FieldError message={errors.identifier?.message} />
               </div>

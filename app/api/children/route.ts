@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUserFromSession } from '@/lib/auth';
@@ -21,6 +21,11 @@ export async function POST(req: Request) {
 
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
+  }
+
+  const childrenCount = await prisma.childProfile.count({ where: { userId: user.id } });
+  if (childrenCount >= 5) {
+    return NextResponse.json({ error: 'Максимум 5 профилей детей на аккаунт' }, { status: 409 });
   }
 
   const child = await prisma.childProfile.create({
