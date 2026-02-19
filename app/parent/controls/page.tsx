@@ -4,9 +4,10 @@ import { redirect } from 'next/navigation';
 import { ArrowLeft, UserRound } from 'lucide-react';
 import { getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { toTitleCase } from '@/lib/text';
 
 function getInitial(name: string) {
-  return name.trim().charAt(0).toUpperCase() || 'Р';
+  return toTitleCase(name).charAt(0).toUpperCase() || 'Р';
 }
 
 export default async function ParentControlsPage() {
@@ -67,7 +68,7 @@ export default async function ParentControlsPage() {
                       {getInitial(child.name)}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-[30px] font-bold leading-none text-primary">{child.name}</p>
+                      <p className="truncate text-[30px] font-bold leading-none text-primary">{toTitleCase(child.name)}</p>
                       <p className="mt-1 text-[16px] text-primary/90">
                         {child.age} лет • {child.allowedAgeGroups.join(', ')}
                       </p>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, BookOpen, Clock3, Eye, Shield } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { toTitleCase } from '@/lib/text';
 
 type ChildControlData = {
   id: string;
@@ -96,7 +97,7 @@ export function ParentControlsView({ child }: ParentControlsProps) {
             <Shield className="mt-1 h-7 w-7 text-primary" />
             <div className="space-y-1">
               <h1 className="text-[46px] font-extrabold leading-[0.95] tracking-tight text-primary">Родительский контроль</h1>
-              <p className="text-[18px] font-medium leading-tight text-primary/90">{child.name}: управление безопасностью</p>
+              <p className="text-[18px] font-medium leading-tight text-primary/90">{toTitleCase(child.name)}: управление безопасностью</p>
             </div>
           </div>
         </header>

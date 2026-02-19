@@ -4,9 +4,10 @@ import { redirect } from 'next/navigation';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { toTitleCase } from '@/lib/text';
 
 function getInitial(name: string) {
-  return name.trim().charAt(0).toUpperCase() || 'Р';
+  return toTitleCase(name).charAt(0).toUpperCase() || 'Р';
 }
 
 export default async function ParentProfilesPage() {
@@ -61,7 +62,7 @@ export default async function ParentProfilesPage() {
                   {getInitial(child.name)}
                 </div>
                 <div className="min-w-0 flex-1 space-y-2">
-                  <p className="text-[40px] font-bold leading-none text-primary">{child.name}</p>
+                  <p className="text-[40px] font-bold leading-none text-primary">{toTitleCase(child.name)}</p>
                   <p className="text-[20px] font-medium leading-none text-primary/90">
                     {child.age} лет • {child.allowedAgeGroups.join(', ')}
                   </p>

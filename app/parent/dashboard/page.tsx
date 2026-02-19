@@ -4,9 +4,10 @@ import { redirect } from 'next/navigation';
 import { ArrowLeft, BarChart3, Clock3, Eye, Medal, Settings } from 'lucide-react';
 import { getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { toTitleCase } from '@/lib/text';
 
 function getInitial(name: string) {
-  return name.trim().charAt(0).toUpperCase() || 'Р';
+  return toTitleCase(name).charAt(0).toUpperCase() || 'Р';
 }
 
 export default async function ParentDashboardPage() {
@@ -66,7 +67,7 @@ export default async function ParentDashboardPage() {
                   {getInitial(child.name)}
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-primary">{child.name}</p>
+                  <p className="text-2xl font-bold text-primary">{toTitleCase(child.name)}</p>
                   <p className="text-sm font-medium text-primary/80">
                     {child.age} лет • {child.allowedAgeGroups.join(', ')}
                   </p>

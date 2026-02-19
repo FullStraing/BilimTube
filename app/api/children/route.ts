@@ -2,6 +2,7 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUserFromSession } from '@/lib/auth';
+import { toTitleCase } from '@/lib/text';
 
 const payloadSchema = z.object({
   name: z.string().min(2),
@@ -31,6 +32,7 @@ export async function POST(req: Request) {
   const child = await prisma.childProfile.create({
     data: {
       ...parsed.data,
+      name: toTitleCase(parsed.data.name),
       userId: user.id
     }
   });

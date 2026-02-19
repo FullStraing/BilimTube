@@ -5,11 +5,26 @@ import { getCurrentUserFromSession } from '@/lib/auth';
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const limit = Math.min(Math.max(Number(url.searchParams.get('limit') ?? 10), 1), 50);
+  const q = url.searchParams.get('q')?.trim();
+  const category = url.searchParams.get('category')?.trim();
+  const ageGroup = url.searchParams.get('ageGroup')?.trim();
 
   const user = await getCurrentUserFromSession();
 
   const videos = await prisma.video.findMany({
-    where: { isPublished: true },
+    where: {
+      isPublished: true,
+      ...(category ? { category } : {}),
+      ...(ageGroup ? { ageGroup } : {}),
+      ...(q
+        ? {
+            OR: [
+              { title: { contains: q, mode: 'insensitive' } },
+              { category: { contains: q, mode: 'insensitive' } }
+            ]
+          }
+        : {})
+    },
     orderBy: { createdAt: 'desc' },
     take: limit,
     select: {

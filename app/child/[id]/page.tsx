@@ -1,12 +1,13 @@
-import type { Route } from 'next';
+﻿import type { Route } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { toTitleCase } from '@/lib/text';
 
 function getInitial(name: string) {
-  return name.trim().charAt(0).toUpperCase() || 'Р';
+  return toTitleCase(name).charAt(0).toUpperCase() || 'Р';
 }
 
 export default async function ChildPage({ params }: { params: { id: string } }) {
@@ -36,6 +37,8 @@ export default async function ChildPage({ params }: { params: { id: string } }) 
     notFound();
   }
 
+  const childName = toTitleCase(child.name);
+
   return (
     <div className="min-h-screen bg-background px-5 py-6">
       <div className="mx-auto w-full max-w-md space-y-5">
@@ -53,10 +56,10 @@ export default async function ChildPage({ params }: { params: { id: string } }) 
               className="grid h-16 w-16 place-items-center rounded-2xl text-4xl font-bold text-white"
               style={{ backgroundColor: child.avatarColor }}
             >
-              {getInitial(child.name)}
+              {getInitial(childName)}
             </div>
             <div>
-              <h1 className="text-[38px] font-bold leading-none text-primary">{child.name}</h1>
+              <h1 className="text-[38px] font-bold leading-none text-primary">{childName}</h1>
               <p className="mt-1 text-[18px] text-primary/90">
                 {child.age} лет • {child.allowedAgeGroups.join(', ')}
               </p>

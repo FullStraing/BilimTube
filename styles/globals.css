@@ -28,7 +28,7 @@
   --shadow-soft: 0 16px 32px rgba(15, 78, 107, 0.14);
   --shadow-card: 0 10px 20px rgba(15, 78, 107, 0.12);
 
-  --font-sans: 'Manrope';
+  --font-sans: 'Manrope', 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 * {
@@ -37,6 +37,7 @@
 
 body {
   @apply bg-background text-foreground antialiased;
+  font-family: var(--font-sans);
   font-feature-settings: 'ss01' on, 'ss02' on;
 }
 

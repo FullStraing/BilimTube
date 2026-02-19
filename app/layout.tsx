@@ -1,10 +1,7 @@
 ﻿import type { Metadata } from 'next';
-import { Manrope } from 'next/font/google';
 import '@/styles/globals.css';
 import { Providers } from './providers';
 import { AppShell } from '@/components/layout/app-shell';
-
-const manrope = Manrope({ subsets: ['latin', 'cyrillic'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
   title: 'BilimTube',
@@ -14,7 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru">
-      <body className={manrope.variable}>
+      <body>
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>
@@ -22,4 +19,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-
