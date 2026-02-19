@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
 import { getCurrentUserFromSession } from '@/lib/auth';
+import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
 import { prisma } from '@/lib/prisma';
 import { QuizRunner } from '@/features/quiz/quiz-runner';
 
@@ -16,9 +17,13 @@ export default async function VideoQuizPage({
   if (!user) {
     redirect('/auth/login');
   }
+  const policy = await getActiveChildPolicy(user.id);
+  const policyClauses = buildVideoPolicyClauses(policy);
 
   const video = await prisma.video.findFirst({
-    where: { slug, isPublished: true },
+    where: {
+      AND: [{ slug, isPublished: true }, ...policyClauses]
+    },
     select: {
       id: true,
       title: true,

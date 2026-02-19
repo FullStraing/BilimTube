@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
+import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
 import { prisma } from '@/lib/prisma';
 
 const submitSchema = z.object({
@@ -21,6 +22,11 @@ export async function POST(
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
   const activeChildId = await getActiveChildIdForUser(user.id);
+  const policy = await getActiveChildPolicy(user.id);
+  const policyClauses = buildVideoPolicyClauses(policy);
+  if (!activeChildId) {
+    return NextResponse.json({ error: 'Сначала создайте или выберите профиль ребенка' }, { status: 409 });
+  }
 
   const { slug } = await params;
   const body = await req.json().catch(() => null);
@@ -31,7 +37,9 @@ export async function POST(
   }
 
   const video = await prisma.video.findFirst({
-    where: { slug, isPublished: true },
+    where: {
+      AND: [{ slug, isPublished: true }, ...policyClauses]
+    },
     select: {
       id: true,
       quiz: {

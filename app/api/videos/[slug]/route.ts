@@ -1,6 +1,7 @@
 ﻿import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
+import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
 
 export async function GET(
   _req: Request,
@@ -8,9 +9,13 @@ export async function GET(
 ) {
   const { slug } = await params;
   const user = await getCurrentUserFromSession();
+  const policy = user ? await getActiveChildPolicy(user.id) : null;
+  const policyClauses = buildVideoPolicyClauses(policy);
 
   const video = await prisma.video.findFirst({
-    where: { slug, isPublished: true },
+    where: {
+      AND: [{ slug, isPublished: true }, ...policyClauses]
+    },
     select: {
       id: true,
       slug: true,

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
+import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -10,20 +12,24 @@ export async function GET(req: Request) {
   const ageGroup = url.searchParams.get('ageGroup')?.trim();
 
   const user = await getCurrentUserFromSession();
+  const policy = user ? await getActiveChildPolicy(user.id) : null;
+  const policyClauses = buildVideoPolicyClauses(policy);
+  const andClauses: Prisma.VideoWhereInput[] = [{ isPublished: true }, ...policyClauses];
+
+  if (category) andClauses.push({ category });
+  if (ageGroup) andClauses.push({ ageGroup });
+  if (q) {
+    andClauses.push({
+      OR: [
+        { title: { contains: q, mode: 'insensitive' } },
+        { category: { contains: q, mode: 'insensitive' } }
+      ]
+    });
+  }
 
   const videos = await prisma.video.findMany({
     where: {
-      isPublished: true,
-      ...(category ? { category } : {}),
-      ...(ageGroup ? { ageGroup } : {}),
-      ...(q
-        ? {
-            OR: [
-              { title: { contains: q, mode: 'insensitive' } },
-              { category: { contains: q, mode: 'insensitive' } }
-            ]
-          }
-        : {})
+      AND: andClauses
     },
     orderBy: { createdAt: 'desc' },
     take: limit,

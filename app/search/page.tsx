@@ -1,6 +1,8 @@
-import type { Route } from 'next';
+﻿import type { Route } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { getCurrentUserFromSession } from '@/lib/auth';
+import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
 import { prisma } from '@/lib/prisma';
 import { VideoCard } from '@/components/video/video-card';
 
@@ -10,11 +12,13 @@ export default async function SearchPage({
   searchParams: Promise<{ category?: string }>;
 }) {
   const { category } = await searchParams;
+  const user = await getCurrentUserFromSession();
+  const policy = user ? await getActiveChildPolicy(user.id) : null;
+  const policyClauses = buildVideoPolicyClauses(policy);
 
   const videos = await prisma.video.findMany({
     where: {
-      isPublished: true,
-      ...(category ? { category } : {})
+      AND: [{ isPublished: true }, ...policyClauses, ...(category ? [{ category }] : [])]
     },
     orderBy: [{ viewsCount: 'desc' }, { createdAt: 'desc' }],
     select: {
@@ -45,9 +49,7 @@ export default async function SearchPage({
             <h1 className="text-[34px] font-bold leading-none text-primary lg:text-[38px]">
               {category ? `Категория: ${category}` : 'Поиск'}
             </h1>
-            <p className="mt-1 text-[17px] text-primary/80">
-              {videos.length} видео
-            </p>
+            <p className="mt-1 text-[17px] text-primary/80">{videos.length} видео</p>
           </div>
         </div>
 

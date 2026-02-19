@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
+import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(
@@ -11,6 +12,8 @@ export async function POST(
     return NextResponse.json({ ok: true });
   }
   const activeChildId = await getActiveChildIdForUser(user.id);
+  const policy = await getActiveChildPolicy(user.id);
+  const policyClauses = buildVideoPolicyClauses(policy);
   if (!activeChildId) {
     return NextResponse.json({ ok: true });
   }
@@ -18,7 +21,9 @@ export async function POST(
   const { slug } = await params;
 
   const video = await prisma.video.findFirst({
-    where: { slug, isPublished: true },
+    where: {
+      AND: [{ slug, isPublished: true }, ...policyClauses]
+    },
     select: { id: true }
   });
 
