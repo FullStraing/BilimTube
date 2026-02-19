@@ -21,6 +21,8 @@ model User {
   sessions     Session[]
   children     ChildProfile[]
   favorites    Favorite[]
+  watchHistory WatchHistory[]
+  quizAttempts QuizAttempt[]
 }
 
 model Session {
@@ -66,6 +68,8 @@ model Video {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   favorites    Favorite[]
+  watchHistory WatchHistory[]
+  quiz         Quiz?
 }
 
 model Favorite {
@@ -79,6 +83,85 @@ model Favorite {
   @@unique([userId, videoId])
   @@index([userId])
   @@index([videoId])
+}
+
+model WatchHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  videoId   String
+  watchedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@index([userId, watchedAt])
+  @@index([videoId])
+}
+
+model Quiz {
+  id          String         @id @default(cuid())
+  videoId     String         @unique
+  title       String
+  description String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  video       Video          @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  questions   QuizQuestion[]
+  attempts    QuizAttempt[]
+}
+
+model QuizQuestion {
+  id        String       @id @default(cuid())
+  quizId    String
+  text      String
+  sortOrder Int
+  quiz      Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  options   QuizOption[]
+  answers   QuizAnswer[]
+
+  @@index([quizId, sortOrder])
+}
+
+model QuizOption {
+  id         String       @id @default(cuid())
+  questionId String
+  text       String
+  sortOrder  Int
+  isCorrect  Boolean      @default(false)
+  question   QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answers    QuizAnswer[] @relation("SelectedOption")
+
+  @@index([questionId, sortOrder])
+}
+
+model QuizAttempt {
+  id         String       @id @default(cuid())
+  quizId     String
+  userId     String
+  score      Int
+  maxScore   Int
+  percentage Int
+  createdAt  DateTime     @default(now())
+  quiz       Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers    QuizAnswer[]
+
+  @@index([userId, createdAt])
+  @@index([quizId, createdAt])
+}
+
+model QuizAnswer {
+  id               String       @id @default(cuid())
+  attemptId        String
+  questionId       String
+  selectedOptionId String?
+  isCorrect        Boolean
+  attempt          QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question         QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedOption   QuizOption?  @relation("SelectedOption", fields: [selectedOptionId], references: [id], onDelete: SetNull)
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
 }
 
 enum AccountType {

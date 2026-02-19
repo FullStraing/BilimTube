@@ -10,7 +10,9 @@ function getInitial(name: string) {
   return toTitleCase(name).charAt(0).toUpperCase() || 'Р';
 }
 
-export default async function ChildPage({ params }: { params: { id: string } }) {
+export default async function ChildPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+
   const user = await getCurrentUserFromSession();
   if (!user) {
     redirect('/auth/login');
@@ -18,7 +20,7 @@ export default async function ChildPage({ params }: { params: { id: string } }) 
 
   const child = await prisma.childProfile.findFirst({
     where: {
-      id: params.id,
+      id,
       userId: user.id
     },
     select: {

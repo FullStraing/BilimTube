@@ -20,7 +20,7 @@ const videos = [
     description: 'Древний мир динозавров простыми словами.',
     category: 'Наука',
     ageGroup: '7-9',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1621886292650-52042c84f8ef?w=1200&q=80',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1501706362039-c6e08d4e5f2b?w=1200&q=80',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     durationSec: 480,
     viewsCount: 9800
@@ -66,6 +66,105 @@ async function main() {
       where: { slug: video.slug },
       create: video,
       update: video
+    });
+  }
+
+  const solarVideo = await prisma.video.findUnique({ where: { slug: 'solar-system-for-kids' }, select: { id: true } });
+  const bodyVideo = await prisma.video.findUnique({ where: { slug: 'human-body-basics' }, select: { id: true } });
+
+  if (solarVideo) {
+    await prisma.quiz.deleteMany({ where: { videoId: solarVideo.id } });
+    await prisma.quiz.create({
+      data: {
+        videoId: solarVideo.id,
+        title: 'Тест: Солнечная система',
+        description: 'Проверь, что ты запомнил из видео.',
+        questions: {
+          create: [
+            {
+              text: 'Какая звезда находится в центре Солнечной системы?',
+              sortOrder: 1,
+              options: {
+                create: [
+                  { text: 'Луна', sortOrder: 1, isCorrect: false },
+                  { text: 'Солнце', sortOrder: 2, isCorrect: true },
+                  { text: 'Марс', sortOrder: 3, isCorrect: false }
+                ]
+              }
+            },
+            {
+              text: 'Какая планета известна своими кольцами?',
+              sortOrder: 2,
+              options: {
+                create: [
+                  { text: 'Сатурн', sortOrder: 1, isCorrect: true },
+                  { text: 'Земля', sortOrder: 2, isCorrect: false },
+                  { text: 'Венера', sortOrder: 3, isCorrect: false }
+                ]
+              }
+            },
+            {
+              text: 'На какой планете живем мы?',
+              sortOrder: 3,
+              options: {
+                create: [
+                  { text: 'Юпитер', sortOrder: 1, isCorrect: false },
+                  { text: 'Земля', sortOrder: 2, isCorrect: true },
+                  { text: 'Нептун', sortOrder: 3, isCorrect: false }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    });
+  }
+
+  if (bodyVideo) {
+    await prisma.quiz.deleteMany({ where: { videoId: bodyVideo.id } });
+    await prisma.quiz.create({
+      data: {
+        videoId: bodyVideo.id,
+        title: 'Тест: Наш организм',
+        description: 'Вопросы по видео о теле человека.',
+        questions: {
+          create: [
+            {
+              text: 'Какой орган перекачивает кровь?',
+              sortOrder: 1,
+              options: {
+                create: [
+                  { text: 'Легкие', sortOrder: 1, isCorrect: false },
+                  { text: 'Сердце', sortOrder: 2, isCorrect: true },
+                  { text: 'Печень', sortOrder: 3, isCorrect: false }
+                ]
+              }
+            },
+            {
+              text: 'Что помогает нам дышать?',
+              sortOrder: 2,
+              options: {
+                create: [
+                  { text: 'Легкие', sortOrder: 1, isCorrect: true },
+                  { text: 'Почки', sortOrder: 2, isCorrect: false },
+                  { text: 'Желудок', sortOrder: 3, isCorrect: false }
+                ]
+              }
+            },
+            {
+              text: 'Как называется твердая основа тела?',
+              sortOrder: 3,
+              options: {
+                create: [
+                  { text: 'Скелет', sortOrder: 1, isCorrect: true },
+                  { text: 'Кожа', sortOrder: 2, isCorrect: false },
+                  { text: 'Мышцы', sortOrder: 3, isCorrect: false }
+                ]
+              }
+            }
+          ]
+        }
+      }
     });
   }
 

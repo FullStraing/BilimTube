@@ -5,6 +5,7 @@ import { getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { HomeFeed } from '@/features/videos/home-feed';
 import { toTitleCase } from '@/lib/text';
+import { HomeIntroSplash } from '@/components/home/home-intro-splash';
 
 export default async function HomePage() {
   const user = await getCurrentUserFromSession();
@@ -21,6 +22,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <HomeIntroSplash />
       <header className="fixed inset-x-0 top-0 z-40 border-b border-border bg-card">
         <div className="mx-auto flex h-[72px] w-full items-center justify-between gap-4 px-4 sm:px-5 lg:px-6">
           <span className="text-[36px] font-extrabold leading-none tracking-[0.03em] text-primary sm:text-[40px]">

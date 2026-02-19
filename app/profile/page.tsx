@@ -40,6 +40,7 @@ export default async function ProfilePage() {
     : null;
 
   const favoritesCount = user ? await prisma.favorite.count({ where: { userId: user.id } }) : 0;
+  const testsCount = user ? await prisma.quizAttempt.count({ where: { userId: user.id } }) : 0;
   const videosCount = await prisma.video.count({ where: { isPublished: true } });
 
   return (
@@ -99,7 +100,7 @@ export default async function ProfilePage() {
             <p className="mt-2 text-[22px] text-primary/90 lg:text-[16px]">Видео</p>
           </article>
           <article className="rounded-[18px] border border-border bg-card p-3 text-center shadow-card lg:p-4">
-            <p className="text-[48px] font-bold leading-none text-primary lg:text-[36px]">0</p>
+            <p className="text-[48px] font-bold leading-none text-primary lg:text-[36px]">{testsCount}</p>
             <p className="mt-2 text-[22px] text-primary/90 lg:text-[16px]">Тесты</p>
           </article>
           <article className="rounded-[18px] border border-border bg-card p-3 text-center shadow-card lg:p-4">

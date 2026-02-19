@@ -15,6 +15,7 @@ import { getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { formatDuration, formatViews } from '@/lib/video-format';
 import { VideoActions } from '@/components/video/video-actions';
+import { WatchTracker } from '@/components/video/watch-tracker';
 
 export default async function VideoPage({
   params
@@ -91,6 +92,7 @@ export default async function VideoPage({
 
   return (
     <div className="min-h-screen bg-background">
+      <WatchTracker slug={video.slug} />
       <header className="fixed inset-x-0 top-0 z-40 border-b border-border bg-card">
         <div className="mx-auto flex h-[72px] w-full items-center justify-between gap-4 px-4 sm:px-5 lg:px-6">
           <span className="text-[36px] font-extrabold leading-none tracking-[0.03em] text-primary sm:text-[40px]">BILIMTUBE</span>
@@ -150,6 +152,9 @@ export default async function VideoPage({
             <div className="space-y-4">
               <div className="relative overflow-hidden rounded-[22px] bg-black">
                 <video
+                  autoPlay
+                  playsInline
+                  preload="metadata"
                   controls
                   poster={video.thumbnailUrl}
                   className="aspect-video w-full object-cover"
@@ -185,12 +190,12 @@ export default async function VideoPage({
                       <p className="mt-1 text-[19px] text-primary/85">Проверь свои знания</p>
                     </div>
                   </div>
-                  <button
-                    type="button"
+                  <Link
+                    href={`/video/${video.slug}/quiz` as Route}
                     className="mt-4 flex h-14 w-full items-center justify-center rounded-[18px] bg-primary text-[30px] font-bold text-white transition hover:brightness-110"
                   >
                     Начать тест
-                  </button>
+                  </Link>
                 </article>
 
                 <p className="mt-4 text-[20px] leading-relaxed text-primary/90">{video.description}</p>

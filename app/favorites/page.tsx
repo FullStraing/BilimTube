@@ -55,18 +55,24 @@ export default async function FavoritesPage() {
         </div>
       </header>
 
-      <main className="space-y-4 pb-24 px-5 py-5 pt-[88px] lg:ml-[220px] lg:px-6 lg:pb-8">
-        {!user ? (
-          <div className="rounded-[22px] border border-border bg-card p-4 text-[16px] text-primary/85 shadow-card">
-            Войдите в аккаунт, чтобы сохранять и смотреть избранные видео.
-          </div>
-        ) : favorites.length ? (
-          favorites.map((item) => <VideoCard key={item.id} video={item.video} />)
-        ) : (
-          <div className="rounded-[22px] border border-border bg-card p-4 text-[16px] text-primary/85 shadow-card">
-            Вы пока ничего не добавили в избранное.
-          </div>
-        )}
+      <main className="pb-24 px-5 py-5 pt-[88px] lg:ml-[220px] lg:px-6 lg:pb-8">
+        <div className="mx-auto w-full max-w-6xl">
+          {!user ? (
+            <div className="rounded-[22px] border border-border bg-card p-4 text-[16px] text-primary/85 shadow-card">
+              Войдите в аккаунт, чтобы сохранять и смотреть избранные видео.
+            </div>
+          ) : favorites.length ? (
+            <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+              {favorites.map((item) => (
+                <VideoCard key={item.id} video={item.video} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-[22px] border border-border bg-card p-4 text-[16px] text-primary/85 shadow-card">
+              Вы пока ничего не добавили в избранное.
+            </div>
+          )}
+        </div>
       </main>
 
       <aside className="fixed bottom-0 left-0 top-[72px] hidden w-[220px] border-r border-border bg-card px-4 py-5 lg:block">
