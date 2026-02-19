@@ -1,14 +1,17 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode, RefObject } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import type { FieldValues, Path, UseFormRegister } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Eye, EyeOff, Mail, Phone } from 'lucide-react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { GoogleAuthButton } from '@/components/auth/google-auth-button';
 import { loginSchema, registerSchema, type LoginValues, type RegisterValues } from './schemas';
 
 const segmentedRoot =
@@ -50,6 +53,151 @@ function AuthHeader({ title, subtitle }: { title: string; subtitle: string }) {
   );
 }
 
+function AuthMethodSwitch({
+  method,
+  onMethodChange
+}: {
+  method: 'email' | 'phone';
+  onMethodChange: (method: 'email' | 'phone') => void;
+}) {
+  return (
+    <div className="mt-6 flex justify-center">
+      <div className={segmentedRoot}>
+        <button
+          type="button"
+          className={`${segmentedItem} ${method === 'email' ? 'bg-white text-primary hover:brightness-95' : 'text-primary/70 shadow-none'}`}
+          onClick={() => onMethodChange('email')}
+        >
+          Email
+        </button>
+        <button
+          type="button"
+          className={`${segmentedItem} ${method === 'phone' ? 'bg-white text-primary hover:brightness-95' : 'text-primary/70 shadow-none'}`}
+          onClick={() => onMethodChange('phone')}
+        >
+          Телефон
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AuthIdentifierField<T extends FieldValues>({
+  method,
+  country,
+  setCountry,
+  isCountryMenuOpen,
+  setIsCountryMenuOpen,
+  countryMenuRef,
+  register,
+  errorMessage
+}: {
+  method: 'email' | 'phone';
+  country: (typeof countries)[number];
+  setCountry: (country: (typeof countries)[number]) => void;
+  isCountryMenuOpen: boolean;
+  setIsCountryMenuOpen: (open: boolean) => void;
+  countryMenuRef: RefObject<HTMLDivElement>;
+  register: UseFormRegister<T>;
+  errorMessage?: string;
+}) {
+  if (method === 'email') {
+    return (
+      <div className="space-y-2">
+        <label className="text-sm font-semibold text-primary">
+          Email <span className="text-destructive">*</span>
+        </label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
+            <Mail className="h-5 w-5" />
+          </span>
+          <Input
+            className="h-12 rounded-[16px] border-2 border-[#D0D8DF] pl-12 text-sm"
+            placeholder="example@mail.com"
+            {...register('identifier' as Path<T>)}
+          />
+        </div>
+        <FieldError message={errorMessage} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-semibold text-primary">
+        Номер телефона <span className="text-destructive">*</span>
+      </label>
+      <div ref={countryMenuRef} className="relative">
+        <div className="grid grid-cols-[120px_1fr] gap-3">
+          <button
+            type="button"
+            className="h-12 w-full rounded-[16px] border-2 border-[#D0D8DF] bg-white px-3 text-sm font-semibold text-primary"
+            onClick={() => setIsCountryMenuOpen(!isCountryMenuOpen)}
+          >
+            {country.code} {country.dial}
+          </button>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
+              <Phone className="h-5 w-5" />
+            </span>
+            <Input
+              className="h-12 rounded-[16px] border-2 border-[#D0D8DF] pl-12 text-sm"
+              placeholder="(312) 123-456"
+              {...register('identifier' as Path<T>)}
+            />
+          </div>
+        </div>
+
+        {isCountryMenuOpen ? (
+          <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-30 max-h-72 overflow-auto rounded-[20px] border border-[#D0D8DF] bg-white shadow-soft">
+            {countries.map((item) => (
+              <button
+                key={item.code}
+                type="button"
+                className={`flex w-full items-center justify-between px-4 py-3 text-sm font-semibold ${
+                  item.code === country.code ? 'bg-secondary text-primary' : 'text-primary'
+                }`}
+                onClick={() => {
+                  setCountry(item);
+                  setIsCountryMenuOpen(false);
+                }}
+              >
+                <span>
+                  {item.code} {item.name}
+                </span>
+                <span>{item.dial}</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+      <FieldError message={errorMessage} />
+    </div>
+  );
+}
+
+function useGoogleOauthErrorToast() {
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const oauthError = new URLSearchParams(window.location.search).get('oauth');
+    if (!oauthError) return;
+
+    const descriptionMap: Record<string, string> = {
+      invalid_state: 'Не удалось подтвердить вход через Google. Попробуйте снова.',
+      email_required: 'В Google-аккаунте нет подтвержденного email.',
+      failed: 'Ошибка авторизации через Google. Попробуйте еще раз.',
+      google_unavailable: 'Google OAuth не настроен на сервере.'
+    };
+
+    toast({
+      title: 'Google авторизация',
+      description: descriptionMap[oauthError] ?? 'Не удалось выполнить вход через Google.'
+    });
+  }, [toast]);
+}
+
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
@@ -58,7 +206,9 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [country, setCountry] = useState(countries[0]);
   const [isCountryMenuOpen, setIsCountryMenuOpen] = useState(false);
-  const countryMenuRef = useRef<HTMLDivElement | null>(null);
+  const countryMenuRef = useRef<HTMLDivElement>(null);
+
+  useGoogleOauthErrorToast();
 
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
@@ -117,101 +267,32 @@ export function LoginForm() {
         <div className="rounded-[28px] border border-border bg-card px-6 pb-8 pt-8 shadow-card">
           <AuthHeader title="Вход" subtitle="Войдите в свой аккаунт" />
 
-          <div className="mt-6 flex justify-center">
-            <div className={segmentedRoot}>
-              <button
-                type="button"
-                className={`${segmentedItem} ${method === 'email' ? 'bg-white text-primary hover:brightness-95' : 'text-primary/70 shadow-none'}`}
-                onClick={() => {
-                  setMethod('email');
-                  setValue('method', 'email');
-                  setIsCountryMenuOpen(false);
-                }}
-              >
-                Email
-              </button>
-              <button
-                type="button"
-                className={`${segmentedItem} ${method === 'phone' ? 'bg-white text-primary hover:brightness-95' : 'text-primary/70 shadow-none'}`}
-                onClick={() => {
-                  setMethod('phone');
-                  setValue('method', 'phone');
-                }}
-              >
-                Телефон
-              </button>
-            </div>
+          <div className="mt-6">
+            <GoogleAuthButton mode="login" />
           </div>
 
+          <AuthMethodSwitch
+            method={method}
+            onMethodChange={(nextMethod) => {
+              setMethod(nextMethod);
+              setValue('method', nextMethod);
+              if (nextMethod === 'email') {
+                setIsCountryMenuOpen(false);
+              }
+            }}
+          />
+
           <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-5">
-            {method === 'email' ? (
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-primary">
-                  Email <span className="text-destructive">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
-                    <Mail className="h-5 w-5" />
-                  </span>
-                  <Input
-                    className="h-12 rounded-[16px] border-2 border-[#D0D8DF] pl-12 text-sm"
-                    placeholder="example@mail.com"
-                    {...register('identifier')}
-                  />
-                </div>
-                <FieldError message={errors.identifier?.message} />
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-primary">
-                  Номер телефона <span className="text-destructive">*</span>
-                </label>
-                <div ref={countryMenuRef} className="relative">
-                  <div className="grid grid-cols-[120px_1fr] gap-3">
-                    <button
-                      type="button"
-                      className="h-12 w-full rounded-[16px] border-2 border-[#D0D8DF] bg-white px-3 text-sm font-semibold text-primary"
-                      onClick={() => setIsCountryMenuOpen((prev) => !prev)}
-                    >
-                      {country.code} {country.dial}
-                    </button>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
-                        <Phone className="h-5 w-5" />
-                      </span>
-                      <Input
-                        className="h-12 rounded-[16px] border-2 border-[#D0D8DF] pl-12 text-sm"
-                        placeholder="(312) 123-456"
-                        {...register('identifier')}
-                      />
-                    </div>
-                  </div>
-                  {isCountryMenuOpen ? (
-                    <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-30 max-h-72 overflow-auto rounded-[20px] border border-[#D0D8DF] bg-white shadow-soft">
-                      {countries.map((item) => (
-                        <button
-                          key={item.code}
-                          type="button"
-                          className={`flex w-full items-center justify-between px-4 py-3 text-sm font-semibold ${
-                            item.code === country.code ? 'bg-secondary text-primary' : 'text-primary'
-                          }`}
-                          onClick={() => {
-                            setCountry(item);
-                            setIsCountryMenuOpen(false);
-                          }}
-                        >
-                          <span>
-                            {item.code} {item.name}
-                          </span>
-                          <span>{item.dial}</span>
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-                <FieldError message={errors.identifier?.message} />
-              </div>
-            )}
+            <AuthIdentifierField
+              method={method}
+              country={country}
+              setCountry={setCountry}
+              isCountryMenuOpen={isCountryMenuOpen}
+              setIsCountryMenuOpen={setIsCountryMenuOpen}
+              countryMenuRef={countryMenuRef}
+              register={register}
+              errorMessage={errors.identifier?.message}
+            />
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-primary">
@@ -242,7 +323,7 @@ export function LoginForm() {
 
             <Button
               type="submit"
-              className="h-14 w-full rounded-[20px] bg-primary text-white text-base font-semibold"
+              className="h-14 w-full rounded-[20px] bg-primary text-base font-semibold text-white"
               disabled={isLoading}
             >
               {isLoading ? 'Входим...' : 'Войти'}
@@ -271,7 +352,9 @@ export function RegisterForm() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [country, setCountry] = useState(countries[0]);
   const [isCountryMenuOpen, setIsCountryMenuOpen] = useState(false);
-  const countryMenuRef = useRef<HTMLDivElement | null>(null);
+  const countryMenuRef = useRef<HTMLDivElement>(null);
+
+  useGoogleOauthErrorToast();
 
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
@@ -337,6 +420,10 @@ export function RegisterForm() {
         <div className="rounded-[28px] border border-border bg-card px-6 pb-8 pt-8 shadow-card">
           <AuthHeader title="Регистрация" subtitle="Создайте аккаунт для доступа" />
 
+          <div className="mt-6">
+            <GoogleAuthButton mode="register" />
+          </div>
+
           <div className="mt-6 space-y-3">
             <p className="text-sm font-semibold text-primary">Тип аккаунта</p>
             <button
@@ -371,101 +458,28 @@ export function RegisterForm() {
             </button>
           </div>
 
-          <div className="mt-6 flex justify-center">
-            <div className={segmentedRoot}>
-              <button
-                type="button"
-                className={`${segmentedItem} ${method === 'email' ? 'bg-white text-primary hover:brightness-95' : 'text-primary/70 shadow-none'}`}
-                onClick={() => {
-                  setMethod('email');
-                  setValue('method', 'email');
-                  setIsCountryMenuOpen(false);
-                }}
-              >
-                Email
-              </button>
-              <button
-                type="button"
-                className={`${segmentedItem} ${method === 'phone' ? 'bg-white text-primary hover:brightness-95' : 'text-primary/70 shadow-none'}`}
-                onClick={() => {
-                  setMethod('phone');
-                  setValue('method', 'phone');
-                }}
-              >
-                Телефон
-              </button>
-            </div>
-          </div>
+          <AuthMethodSwitch
+            method={method}
+            onMethodChange={(nextMethod) => {
+              setMethod(nextMethod);
+              setValue('method', nextMethod);
+              if (nextMethod === 'email') {
+                setIsCountryMenuOpen(false);
+              }
+            }}
+          />
 
           <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-5">
-            {method === 'email' ? (
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-primary">
-                  Email <span className="text-destructive">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
-                    <Mail className="h-5 w-5" />
-                  </span>
-                  <Input
-                    className="h-12 rounded-[16px] border-2 border-[#D0D8DF] pl-12 text-sm"
-                    placeholder="example@mail.com"
-                    {...register('identifier')}
-                  />
-                </div>
-                <FieldError message={errors.identifier?.message} />
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-primary">
-                  Номер телефона <span className="text-destructive">*</span>
-                </label>
-                <div ref={countryMenuRef} className="relative">
-                  <div className="grid grid-cols-[120px_1fr] gap-3">
-                    <button
-                      type="button"
-                      className="h-12 w-full rounded-[16px] border-2 border-[#D0D8DF] bg-white px-3 text-sm font-semibold text-primary"
-                      onClick={() => setIsCountryMenuOpen((prev) => !prev)}
-                    >
-                      {country.code} {country.dial}
-                    </button>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
-                        <Phone className="h-5 w-5" />
-                      </span>
-                      <Input
-                        className="h-12 rounded-[16px] border-2 border-[#D0D8DF] pl-12 text-sm"
-                        placeholder="(312) 123-456"
-                        {...register('identifier')}
-                      />
-                    </div>
-                  </div>
-                  {isCountryMenuOpen ? (
-                    <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-30 max-h-72 overflow-auto rounded-[20px] border border-[#D0D8DF] bg-white shadow-soft">
-                      {countries.map((item) => (
-                        <button
-                          key={item.code}
-                          type="button"
-                          className={`flex w-full items-center justify-between px-4 py-3 text-sm font-semibold ${
-                            item.code === country.code ? 'bg-secondary text-primary' : 'text-primary'
-                          }`}
-                          onClick={() => {
-                            setCountry(item);
-                            setIsCountryMenuOpen(false);
-                          }}
-                        >
-                          <span>
-                            {item.code} {item.name}
-                          </span>
-                          <span>{item.dial}</span>
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-                <FieldError message={errors.identifier?.message} />
-              </div>
-            )}
+            <AuthIdentifierField
+              method={method}
+              country={country}
+              setCountry={setCountry}
+              isCountryMenuOpen={isCountryMenuOpen}
+              setIsCountryMenuOpen={setIsCountryMenuOpen}
+              countryMenuRef={countryMenuRef}
+              register={register}
+              errorMessage={errors.identifier?.message}
+            />
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-primary">
@@ -498,7 +512,7 @@ export function RegisterForm() {
                 <Input
                   type={showConfirm ? 'text' : 'password'}
                   className="h-12 rounded-[16px] border-2 border-[#D0D8DF] pr-12 text-sm"
-                  placeholder="Введите пароль ещё раз"
+                  placeholder="Введите пароль еще раз"
                   {...register('confirmPassword')}
                 />
                 <button
@@ -515,7 +529,7 @@ export function RegisterForm() {
 
             <Button
               type="submit"
-              className="h-14 w-full rounded-[20px] bg-primary text-white text-base font-semibold"
+              className="h-14 w-full rounded-[20px] bg-primary text-base font-semibold text-white"
               disabled={isLoading}
             >
               {isLoading ? 'Создаем...' : 'Создать аккаунт'}
@@ -534,7 +548,7 @@ export function RegisterForm() {
   );
 }
 
-export function AuthScaffold({ children }: { children: React.ReactNode }) {
+export function AuthScaffold({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background px-6 py-8">
       <div className="mx-auto w-full max-w-md space-y-6">{children}</div>

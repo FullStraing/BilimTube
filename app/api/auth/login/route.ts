@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { compare } from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
@@ -42,6 +42,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Аккаунт не найден' }, { status: 404 });
     }
 
+    if (!user.passwordHash) {
+      return NextResponse.json({ error: 'Этот аккаунт создан через Google. Войдите через Google.' }, { status: 400 });
+    }
+
     const isValidPassword = await compare(password, user.passwordHash);
     if (!isValidPassword) {
       return NextResponse.json({ error: 'Неверный пароль' }, { status: 401 });
@@ -64,7 +68,8 @@ export async function POST(req: Request) {
       id: user.id,
       email: user.email,
       phone: user.phone,
-      accountType: user.accountType
+      accountType: user.accountType,
+      authMethod: user.authMethod
     });
   } catch {
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
@@ -80,7 +80,8 @@ export async function POST(req: Request) {
       id: user.id,
       email: user.email,
       phone: user.phone,
-      accountType: user.accountType
+      accountType: user.accountType,
+      authMethod: user.authMethod
     });
   } catch {
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });

@@ -1,51 +1,49 @@
-# BilimTube
+п»ї# BilimTube
 
-## Быстрый старт
+## Р‘С‹СЃС‚СЂС‹Р№ СЃС‚Р°СЂС‚
 
 ```bash
 npm install
+cp .env.example .env.local
+npm run prisma:generate
 npm run dev
 ```
 
-## Скрипты
+## РЎРєСЂРёРїС‚С‹
 
-- `npm run dev` — локальная разработка
-- `npm run build` — продакшн сборка
-- `npm run start` — запуск продакшн сервера
-- `npm run lint` — линтинг
-- `npm run format` — форматирование
+- `npm run dev` вЂ” Р»РѕРєР°Р»СЊРЅР°СЏ СЂР°Р·СЂР°Р±РѕС‚РєР°
+- `npm run build` вЂ” production СЃР±РѕСЂРєР°
+- `npm run start` вЂ” Р·Р°РїСѓСЃРє production СЃРµСЂРІРµСЂР°
+- `npm run lint` вЂ” Р»РёРЅС‚РёРЅРі
+- `npm run format` вЂ” С„РѕСЂРјР°С‚РёСЂРѕРІР°РЅРёРµ
+- `npm run prisma:migrate` вЂ” РїСЂРёРјРµРЅРёС‚СЊ РјРёРіСЂР°С†РёРё Р»РѕРєР°Р»СЊРЅРѕ
 
-## Архитектура
+## РђСЂС…РёС‚РµРєС‚СѓСЂР°
 
-- `app/` — маршруты App Router, layout и страницы
-- `components/` — переиспользуемые UI-компоненты
-- `features/` — фичи по доменам (auth и т.д.)
-- `lib/` — утилиты, API слой, TanStack Query
-- `styles/` — глобальные стили и токены
-- `types/` — общие типы
-- `public/assets/` — статические ассеты
-- `docs/` — документация
+- `app/` вЂ” App Router СЃС‚СЂР°РЅРёС†С‹ Рё API СЂРѕСѓС‚С‹
+- `components/` вЂ” РїРµСЂРµРёСЃРїРѕР»СЊР·СѓРµРјС‹Рµ UI-РєРѕРјРїРѕРЅРµРЅС‚С‹
+- `features/` вЂ” С„РёС‡Рё РїРѕ РґРѕРјРµРЅР°Рј
+- `lib/` вЂ” СѓС‚РёР»РёС‚С‹ Рё РёРЅС„СЂР°СЃС‚СЂСѓРєС‚СѓСЂР°
+- `prisma/` вЂ” СЃС…РµРјР° Рё РјРёРіСЂР°С†РёРё PostgreSQL
+- `public/assets/` вЂ” Р°СЃСЃРµС‚С‹
+- `docs/` вЂ” РґРѕРєСѓРјРµРЅС‚Р°С†РёСЏ
 
-## Как добавить страницу
+## Google OAuth
 
-1. Создайте папку маршрута в `app/`.
-2. Добавьте `page.tsx`.
-3. При необходимости подключите в `components/layout/nav-items.ts`.
+1. РЎРѕР·РґР°Р№С‚Рµ OAuth Client РІ Google Cloud Console.
+2. Р”РѕР±Р°РІСЊС‚Рµ Redirect URI:
+- `http://localhost:3000/api/auth/google/callback`
+- РїСЂРѕРґ URL РІРёРґР° `https://your-domain.com/api/auth/google/callback`
+3. Р—Р°РїРѕР»РЅРёС‚Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ РІ `.env.local`:
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_REDIRECT_URI`
+- `APP_URL`
+4. РџСЂРёРјРµРЅРёС‚Рµ РјРёРіСЂР°С†РёРё Prisma.
 
-## Как добавить компонент
+## Р”РµРїР»РѕР№
 
-1. Добавьте файл в `components/`.
-2. Экспортируйте и используйте в нужной странице/фиче.
-3. Стили — через Tailwind и CSS переменные в `styles/globals.css`.
-
-## Как добавить API-запрос
-
-1. Опишите endpoint в `lib/api/index.ts`.
-2. Создайте хук в `lib/queries.ts`.
-3. Используйте хук в клиентских компонентах.
-
-## Деплой
-
-- Настройте `NEXT_PUBLIC_API_BASE_URL` в переменных окружения.
-- Выполните `npm run build`.
-- Запустите `npm run start`.
+- РќР°СЃС‚СЂРѕР№С‚Рµ env-РїРµСЂРµРјРµРЅРЅС‹Рµ РІ С…РѕСЃС‚РёРЅРіРµ.
+- Р’С‹РїРѕР»РЅРёС‚Рµ `prisma migrate deploy`.
+- РЎРѕР±РµСЂРёС‚Рµ РїСЂРѕРµРєС‚: `npm run build`.
+- Р—Р°РїСѓСЃС‚РёС‚Рµ РїСЂРѕРµРєС‚: `npm run start`.

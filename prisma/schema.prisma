@@ -13,7 +13,8 @@ model User {
   id           String         @id @default(cuid())
   email        String?        @unique
   phone        String?        @unique
-  passwordHash String
+  googleId     String?        @unique
+  passwordHash String?
   accountType  AccountType
   authMethod   AuthMethod
   createdAt    DateTime       @default(now())
@@ -181,4 +182,5 @@ enum AccountType {
 enum AuthMethod {
   email
   phone
+  google
 }

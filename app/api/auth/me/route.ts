@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { getCurrentUserFromSession } from '@/lib/auth';
 
 export async function GET() {
@@ -12,6 +12,7 @@ export async function GET() {
     id: user.id,
     email: user.email,
     phone: user.phone,
-    accountType: user.accountType
+    accountType: user.accountType,
+    authMethod: user.authMethod
   });
 }
