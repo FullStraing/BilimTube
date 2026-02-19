@@ -1,5 +1,5 @@
 ﻿import { NextResponse } from 'next/server';
-import { getCurrentUserFromSession } from '@/lib/auth';
+import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function GET() {
@@ -7,9 +7,13 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
+  const activeChildId = await getActiveChildIdForUser(user.id);
+  if (!activeChildId) {
+    return NextResponse.json([]);
+  }
 
   const favorites = await prisma.favorite.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, childId: activeChildId },
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,

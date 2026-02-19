@@ -1,7 +1,7 @@
 ﻿import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUserFromSession } from '@/lib/auth';
+import { getCurrentUserFromSession, setActiveChildCookie } from '@/lib/auth';
 import { toTitleCase } from '@/lib/text';
 
 const payloadSchema = z.object({
@@ -36,6 +36,8 @@ export async function POST(req: Request) {
       userId: user.id
     }
   });
+
+  await setActiveChildCookie(child.id);
 
   return NextResponse.json(child);
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUserFromSession } from '@/lib/auth';
+import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -43,9 +43,14 @@ export async function GET(req: Request) {
   if (!user) {
     return NextResponse.json(videos.map((video) => ({ ...video, isFavorite: false })));
   }
+  const activeChildId = await getActiveChildIdForUser(user.id);
 
   const favorites = await prisma.favorite.findMany({
-    where: { userId: user.id, videoId: { in: videos.map((video) => video.id) } },
+    where: {
+      userId: user.id,
+      childId: activeChildId,
+      videoId: { in: videos.map((video) => video.id) }
+    },
     select: { videoId: true }
   });
 

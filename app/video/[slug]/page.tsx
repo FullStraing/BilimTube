@@ -11,7 +11,7 @@ import {
   ScrollText,
   User
 } from 'lucide-react';
-import { getCurrentUserFromSession } from '@/lib/auth';
+import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { formatDuration, formatViews } from '@/lib/video-format';
 import { VideoActions } from '@/components/video/video-actions';
@@ -24,6 +24,7 @@ export default async function VideoPage({
 }) {
   const { slug } = await params;
   const user = await getCurrentUserFromSession();
+  const activeChildId = user ? await getActiveChildIdForUser(user.id) : null;
 
   const child = user
     ? await prisma.childProfile.findFirst({
@@ -75,11 +76,12 @@ export default async function VideoPage({
   });
 
   let isFavorite = false;
-  if (user) {
+  if (user && activeChildId) {
     const favorite = await prisma.favorite.findUnique({
       where: {
-        userId_videoId: {
+        userId_childId_videoId: {
           userId: user.id,
+          childId: activeChildId,
           videoId: video.id
         }
       },

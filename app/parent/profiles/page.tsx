@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ArrowLeft, Heart, Home, Layers, PlaySquare, Plus, User } from 'lucide-react';
-import { getCurrentUserFromSession } from '@/lib/auth';
+import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { toTitleCase } from '@/lib/text';
 
@@ -15,6 +15,7 @@ export default async function ParentProfilesPage() {
   if (!user) {
     redirect('/auth/login');
   }
+  const activeChildId = await getActiveChildIdForUser(user.id);
 
   const children = await prisma.childProfile.findMany({
     where: { userId: user.id },
@@ -57,8 +58,10 @@ export default async function ParentProfilesPage() {
           {children.map((child) => (
             <Link
               key={child.id}
-              href={`/child/${child.id}` as Route}
-              className="block rounded-[24px] border border-border bg-card p-4 shadow-card transition hover:brightness-[0.98]"
+              href={`/children/switch/${child.id}` as Route}
+              className={`block rounded-[24px] border bg-card p-4 shadow-card transition hover:brightness-[0.98] ${
+                child.id === activeChildId ? 'border-primary/50 ring-2 ring-primary/20' : 'border-border'
+              }`}
             >
               <div className="flex items-start gap-4">
                 <div
@@ -68,7 +71,14 @@ export default async function ParentProfilesPage() {
                   {getInitial(child.name)}
                 </div>
                 <div className="min-w-0 flex-1 space-y-2">
-                  <p className="text-[44px] font-bold leading-none text-primary lg:text-[34px]">{toTitleCase(child.name)}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[44px] font-bold leading-none text-primary lg:text-[34px]">{toTitleCase(child.name)}</p>
+                    {child.id === activeChildId ? (
+                      <span className="rounded-full bg-primary px-2 py-0.5 text-[12px] font-semibold text-white lg:text-[11px]">
+                        Активный
+                      </span>
+                    ) : null}
+                  </div>
                   <p className="text-[28px] font-medium leading-none text-primary/90 lg:text-[18px]">
                     {child.age} лет • {child.allowedAgeGroups.join(', ')}
                   </p>

@@ -1,25 +1,26 @@
 ﻿import type { Route } from 'next';
 import Link from 'next/link';
 import { Heart, Home, Layers, PlaySquare, User } from 'lucide-react';
-import { getCurrentUserFromSession } from '@/lib/auth';
+import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { VideoCard } from '@/components/video/video-card';
 
 export default async function FavoritesPage() {
   const user = await getCurrentUserFromSession();
-  const child = user
-    ? await prisma.childProfile.findFirst({
-        where: { userId: user.id },
-        orderBy: { createdAt: 'asc' },
-        select: { name: true }
-      })
-    : null;
+  const activeChildId = user ? await getActiveChildIdForUser(user.id) : null;
+  const child =
+    user && activeChildId
+      ? await prisma.childProfile.findFirst({
+          where: { userId: user.id, id: activeChildId },
+          select: { name: true }
+        })
+      : null;
 
   const profileLetter = (child?.name?.trim()?.charAt(0) ?? 'M').toUpperCase();
 
   const favorites = user
     ? await prisma.favorite.findMany({
-        where: { userId: user.id },
+        where: { userId: user.id, childId: activeChildId },
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,

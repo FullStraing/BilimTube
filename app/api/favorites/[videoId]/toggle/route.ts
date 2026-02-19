@@ -1,5 +1,5 @@
 ﻿import { NextResponse } from 'next/server';
-import { getCurrentUserFromSession } from '@/lib/auth';
+import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(
@@ -9,6 +9,10 @@ export async function POST(
   const user = await getCurrentUserFromSession();
   if (!user) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+  }
+  const activeChildId = await getActiveChildIdForUser(user.id);
+  if (!activeChildId) {
+    return NextResponse.json({ error: 'Сначала создайте или выберите профиль ребенка' }, { status: 409 });
   }
 
   const { videoId } = await params;
@@ -24,8 +28,9 @@ export async function POST(
 
   const existing = await prisma.favorite.findUnique({
     where: {
-      userId_videoId: {
+      userId_childId_videoId: {
         userId: user.id,
+        childId: activeChildId,
         videoId
       }
     }
@@ -39,6 +44,7 @@ export async function POST(
   await prisma.favorite.create({
     data: {
       userId: user.id,
+      childId: activeChildId,
       videoId
     }
   });

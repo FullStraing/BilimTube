@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUserFromSession } from '@/lib/auth';
+import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(
@@ -8,6 +8,10 @@ export async function POST(
 ) {
   const user = await getCurrentUserFromSession();
   if (!user) {
+    return NextResponse.json({ ok: true });
+  }
+  const activeChildId = await getActiveChildIdForUser(user.id);
+  if (!activeChildId) {
     return NextResponse.json({ ok: true });
   }
 
@@ -24,8 +28,9 @@ export async function POST(
 
   await prisma.watchHistory.upsert({
     where: {
-      userId_videoId: {
+      userId_childId_videoId: {
         userId: user.id,
+        childId: activeChildId,
         videoId: video.id
       }
     },
@@ -34,6 +39,7 @@ export async function POST(
     },
     create: {
       userId: user.id,
+      childId: activeChildId,
       videoId: video.id
     }
   });

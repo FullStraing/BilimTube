@@ -1,6 +1,6 @@
 ﻿import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUserFromSession } from '@/lib/auth';
+import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 
 export async function GET(
   _req: Request,
@@ -32,11 +32,16 @@ export async function GET(
   if (!user) {
     return NextResponse.json({ ...video, isFavorite: false });
   }
+  const activeChildId = await getActiveChildIdForUser(user.id);
+  if (!activeChildId) {
+    return NextResponse.json({ ...video, isFavorite: false });
+  }
 
   const favorite = await prisma.favorite.findUnique({
     where: {
-      userId_videoId: {
+      userId_childId_videoId: {
         userId: user.id,
+        childId: activeChildId,
         videoId: video.id
       }
     }

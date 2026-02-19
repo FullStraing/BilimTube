@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Clock3 } from 'lucide-react';
 import { redirect } from 'next/navigation';
-import { getCurrentUserFromSession } from '@/lib/auth';
+import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { formatDuration, formatViews } from '@/lib/video-format';
 
@@ -28,9 +28,10 @@ export default async function ProfileHistoryPage() {
   if (!user) {
     redirect('/auth/login');
   }
+  const activeChildId = await getActiveChildIdForUser(user.id);
 
   const history = await prisma.watchHistory.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, childId: activeChildId },
     orderBy: { watchedAt: 'desc' },
     take: 30,
     select: {

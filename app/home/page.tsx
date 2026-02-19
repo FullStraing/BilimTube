@@ -1,7 +1,7 @@
 ﻿import type { Route } from 'next';
 import Link from 'next/link';
 import { Heart, Home, Layers, PlaySquare, User } from 'lucide-react';
-import { getCurrentUserFromSession } from '@/lib/auth';
+import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { HomeFeed } from '@/features/videos/home-feed';
 import { toTitleCase } from '@/lib/text';
@@ -9,13 +9,14 @@ import { HomeIntroSplash } from '@/components/home/home-intro-splash';
 
 export default async function HomePage() {
   const user = await getCurrentUserFromSession();
-  const child = user
-    ? await prisma.childProfile.findFirst({
-        where: { userId: user.id },
-        orderBy: { createdAt: 'asc' },
-        select: { name: true }
-      })
-    : null;
+  const activeChildId = user ? await getActiveChildIdForUser(user.id) : null;
+  const child =
+    user && activeChildId
+      ? await prisma.childProfile.findFirst({
+          where: { userId: user.id, id: activeChildId },
+          select: { name: true }
+        })
+      : null;
 
   const profileLetter = (child?.name?.trim()?.charAt(0) ?? 'M').toUpperCase();
   const helloName = child?.name ? toTitleCase(child.name) : 'друг';

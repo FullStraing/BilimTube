@@ -13,7 +13,7 @@ import {
   User,
   UserRound
 } from 'lucide-react';
-import { getCurrentUserFromSession } from '@/lib/auth';
+import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { LogoutButton } from '@/components/profile/logout-button';
 import { toTitleCase } from '@/lib/text';
@@ -24,10 +24,11 @@ function getInitial(name: string) {
 
 export default async function ProfilePage() {
   const user = await getCurrentUserFromSession();
+  const activeChildId = user ? await getActiveChildIdForUser(user.id) : null;
 
   const child = user
     ? await prisma.childProfile.findFirst({
-        where: { userId: user.id },
+        where: { userId: user.id, ...(activeChildId ? { id: activeChildId } : {}) },
         orderBy: { createdAt: 'asc' },
         select: {
           name: true,
@@ -39,8 +40,8 @@ export default async function ProfilePage() {
       })
     : null;
 
-  const favoritesCount = user ? await prisma.favorite.count({ where: { userId: user.id } }) : 0;
-  const testsCount = user ? await prisma.quizAttempt.count({ where: { userId: user.id } }) : 0;
+  const favoritesCount = user ? await prisma.favorite.count({ where: { userId: user.id, childId: activeChildId } }) : 0;
+  const testsCount = user ? await prisma.quizAttempt.count({ where: { userId: user.id, childId: activeChildId } }) : 0;
   const videosCount = await prisma.video.count({ where: { isPublished: true } });
 
   return (

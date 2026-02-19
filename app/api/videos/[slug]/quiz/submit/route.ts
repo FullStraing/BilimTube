@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getCurrentUserFromSession } from '@/lib/auth';
+import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 const submitSchema = z.object({
@@ -20,6 +20,7 @@ export async function POST(
   if (!user) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
+  const activeChildId = await getActiveChildIdForUser(user.id);
 
   const { slug } = await params;
   const body = await req.json().catch(() => null);
@@ -86,6 +87,7 @@ export async function POST(
     data: {
       quizId: video.quiz.id,
       userId: user.id,
+      childId: activeChildId,
       score,
       maxScore,
       percentage,

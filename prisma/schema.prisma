@@ -49,6 +49,9 @@ model ChildProfile {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  favorites        Favorite[]
+  watchHistory     WatchHistory[]
+  quizAttempts     QuizAttempt[]
 
   @@index([userId])
 }
@@ -75,26 +78,30 @@ model Video {
 model Favorite {
   id        String   @id @default(cuid())
   userId    String
+  childId   String?
   videoId   String
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  child     ChildProfile? @relation(fields: [childId], references: [id], onDelete: SetNull)
   video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, videoId])
-  @@index([userId])
+  @@unique([userId, childId, videoId])
+  @@index([userId, childId])
   @@index([videoId])
 }
 
 model WatchHistory {
   id        String   @id @default(cuid())
   userId    String
+  childId   String?
   videoId   String
   watchedAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  child     ChildProfile? @relation(fields: [childId], references: [id], onDelete: SetNull)
   video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, videoId])
-  @@index([userId, watchedAt])
+  @@unique([userId, childId, videoId])
+  @@index([userId, childId, watchedAt])
   @@index([videoId])
 }
 
@@ -138,15 +145,17 @@ model QuizAttempt {
   id         String       @id @default(cuid())
   quizId     String
   userId     String
+  childId    String?
   score      Int
   maxScore   Int
   percentage Int
   createdAt  DateTime     @default(now())
   quiz       Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
   user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  child      ChildProfile? @relation(fields: [childId], references: [id], onDelete: SetNull)
   answers    QuizAnswer[]
 
-  @@index([userId, createdAt])
+  @@index([userId, childId, createdAt])
   @@index([quizId, createdAt])
 }
 
