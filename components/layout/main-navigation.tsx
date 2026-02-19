@@ -44,8 +44,8 @@ export function MainNavigation({ active }: { active: MainNavKey }) {
         </nav>
       </aside>
 
-      <nav className="fixed bottom-0 left-0 right-0 border-t border-border bg-card lg:hidden">
-        <div className="mx-auto grid w-full max-w-md grid-cols-5 px-4 py-2">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card lg:hidden">
+        <div className="mx-auto grid w-full max-w-md grid-cols-5 px-4 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = item.key === active;

@@ -24,6 +24,7 @@ export default async function HomePage() {
     <div className="min-h-screen bg-background">
       <HomeIntroSplash />
       <PageHeader
+        centerAlign="left"
         center={
           <span className="text-[36px] font-extrabold leading-none tracking-[0.03em] text-primary sm:text-[40px]">
             BILIMTUBE
@@ -32,7 +33,7 @@ export default async function HomePage() {
         right={<HeaderProfileLink letter={profileLetter} />}
       />
 
-      <main className="pb-24 pt-[88px] lg:pb-8">
+      <main className="pb-28 pt-[88px] lg:pb-8">
         <MainNavigation active="home" />
 
         <section className="px-4 sm:px-5 lg:ml-[220px] lg:px-6">
