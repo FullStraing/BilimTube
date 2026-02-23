@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   const user = await getCurrentUserFromSession();
   const policy = user ? await getActiveChildPolicy(user.id) : null;
   const policyClauses = buildVideoPolicyClauses(policy);
-  const andClauses: Prisma.VideoWhereInput[] = [{ isPublished: true }, ...policyClauses];
+  const andClauses: Prisma.VideoWhereInput[] = [{ isPublished: true, contentType: 'LONG' }, ...policyClauses];
 
   if (category) andClauses.push({ category });
   if (ageGroup) andClauses.push({ ageGroup });

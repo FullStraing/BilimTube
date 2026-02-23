@@ -16,7 +16,7 @@ export function VideoCard({ video }: Props) {
       href={`/video/${video.slug}` as Route}
       className="block overflow-hidden rounded-[22px] border border-border bg-card shadow-card transition hover:brightness-[0.99]"
     >
-      <div className="relative h-52 bg-muted sm:h-56 lg:h-52 2xl:h-56">
+      <div className="relative aspect-video w-full bg-muted">
         <Image src={video.thumbnailUrl} alt={video.title} fill className="object-cover" sizes="100vw" />
         <div className="absolute right-3 top-3 rounded-full bg-[#0AC95E] px-3 py-1 text-[16px] font-bold leading-none text-white lg:text-[18px]">
           {video.ageGroup}

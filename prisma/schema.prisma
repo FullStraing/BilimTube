@@ -23,6 +23,7 @@ model User {
   children     ChildProfile[]
   favorites    Favorite[]
   watchHistory WatchHistory[]
+  shortViews   ShortView[]
   quizAttempts QuizAttempt[]
 }
 
@@ -52,6 +53,7 @@ model ChildProfile {
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   favorites        Favorite[]
   watchHistory     WatchHistory[]
+  shortViews       ShortView[]
   quizAttempts     QuizAttempt[]
 
   @@index([userId])
@@ -66,6 +68,7 @@ model Video {
   ageGroup     String
   thumbnailUrl String
   videoUrl     String
+  contentType  ContentType @default(LONG)
   durationSec  Int
   viewsCount   Int        @default(0)
   isPublished  Boolean    @default(true)
@@ -73,7 +76,10 @@ model Video {
   updatedAt    DateTime   @updatedAt
   favorites    Favorite[]
   watchHistory WatchHistory[]
+  shortViews   ShortView[]
   quiz         Quiz?
+
+  @@index([contentType, isPublished, createdAt])
 }
 
 model Favorite {
@@ -104,6 +110,25 @@ model WatchHistory {
   @@unique([userId, childId, videoId])
   @@index([userId, childId, watchedAt])
   @@index([videoId])
+}
+
+model ShortView {
+  id        String    @id @default(cuid())
+  userId    String
+  childId   String?
+  videoId   String
+  watchedMs Int       @default(0)
+  completed Boolean   @default(false)
+  viewedAt  DateTime  @default(now())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  child     ChildProfile? @relation(fields: [childId], references: [id], onDelete: SetNull)
+  video     Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, childId, videoId])
+  @@index([userId, childId, viewedAt])
+  @@index([videoId, viewedAt])
 }
 
 model Quiz {
@@ -183,4 +208,9 @@ enum AuthMethod {
   email
   phone
   google
+}
+
+enum ContentType {
+  LONG
+  SHORT
 }

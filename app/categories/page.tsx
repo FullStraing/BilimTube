@@ -1,4 +1,4 @@
-import type { Route } from 'next';
+﻿import type { Route } from 'next';
 import Link from 'next/link';
 import {
   Calculator,
@@ -77,9 +77,9 @@ export default async function CategoriesPage() {
     <div className="min-h-screen bg-background">
       <PageHeader
         center={
-          <div className="flex items-center gap-3">
-            <Layers className="h-8 w-8 text-primary" />
-            <h1 className="text-[42px] font-bold leading-none text-primary lg:text-[36px]">Разделы</h1>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Layers className="h-6 w-6 text-primary sm:h-8 sm:w-8" />
+            <h1 className="text-[28px] font-bold leading-none text-primary sm:text-[34px] lg:text-[36px]">Разделы</h1>
           </div>
         }
         right={<HeaderProfileLink letter={profileLetter} />}
@@ -88,19 +88,19 @@ export default async function CategoriesPage() {
       <main className="pb-24 pt-[88px] lg:pb-8">
         <MainNavigation active="categories" />
 
-        <div className="px-5 lg:ml-[220px] lg:px-6">
-          <p className="mb-4 text-[34px] text-primary/95 lg:text-[24px]">Выберите категорию видео</p>
+        <div className="px-4 sm:px-5 lg:ml-[220px] lg:px-6">
+          <p className="mb-4 text-[22px] text-primary/95 sm:text-[28px] lg:text-[24px]">Выберите категорию видео</p>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
             {categories.map((category) => (
               <Link
                 key={category.name}
                 href={`/search?category=${encodeURIComponent(category.name)}` as Route}
-                className="rounded-[20px] border border-border bg-card px-4 py-5 text-center shadow-card transition hover:-translate-y-0.5 hover:brightness-[0.99]"
+                className="rounded-[20px] border border-border bg-card px-3 py-4 text-center shadow-card transition hover:-translate-y-0.5 hover:brightness-[0.99] sm:px-4 sm:py-5"
               >
-                <category.Icon className="mx-auto h-12 w-12 text-primary" />
-                <p className="mt-3 text-[26px] font-bold leading-tight text-primary lg:text-[22px]">{category.name}</p>
-                <p className="mt-1 text-[19px] text-primary/90 lg:text-[17px]">{category.count} видео</p>
+                <category.Icon className="mx-auto h-10 w-10 text-primary sm:h-12 sm:w-12" />
+                <p className="mt-3 break-words text-[18px] font-bold leading-tight text-primary sm:text-[24px] lg:text-[22px]">{category.name}</p>
+                <p className="mt-1 text-[16px] text-primary/90 sm:text-[18px] lg:text-[17px]">{category.count} видео</p>
               </Link>
             ))}
           </div>

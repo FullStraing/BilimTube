@@ -2,7 +2,7 @@
 
 const prisma = new PrismaClient();
 
-const videos = [
+const longVideos = [
   {
     slug: 'solar-system-for-kids',
     title: 'Как устроена Солнечная система',
@@ -11,6 +11,7 @@ const videos = [
     ageGroup: '4-6',
     thumbnailUrl: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=1200&q=80',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    contentType: 'LONG',
     durationSec: 420,
     viewsCount: 12500
   },
@@ -22,6 +23,7 @@ const videos = [
     ageGroup: '7-9',
     thumbnailUrl: 'https://images.unsplash.com/photo-1501706362039-c6e08d4e5f2b?w=1200&q=80',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+    contentType: 'LONG',
     durationSec: 480,
     viewsCount: 9800
   },
@@ -33,6 +35,7 @@ const videos = [
     ageGroup: '4-6',
     thumbnailUrl: 'https://images.unsplash.com/photo-1513258496099-48168024aec0?w=1200&q=80',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    contentType: 'LONG',
     durationSec: 360,
     viewsCount: 22300
   },
@@ -44,6 +47,7 @@ const videos = [
     ageGroup: '7-9',
     thumbnailUrl: 'https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?w=1200&q=80',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    contentType: 'LONG',
     durationSec: 600,
     viewsCount: 15400
   },
@@ -55,10 +59,88 @@ const videos = [
     ageGroup: '4-6',
     thumbnailUrl: 'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=1200&q=80',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+    contentType: 'LONG',
     durationSec: 540,
     viewsCount: 8700
   }
 ];
+
+const shortVideos = [
+  {
+    slug: 'short-planet-facts',
+    title: '3 факта о планетах',
+    description: 'Быстро узнаем необычные факты о планетах Солнечной системы.',
+    category: 'Наука',
+    ageGroup: '7-9',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=900&q=80',
+    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+    contentType: 'SHORT',
+    durationSec: 58,
+    viewsCount: 4100
+  },
+  {
+    slug: 'short-math-trick',
+    title: 'Математика за 1 минуту',
+    description: 'Лайфхак для быстрого умножения на 9.',
+    category: 'Математика',
+    ageGroup: '10-13',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1635372722656-389f87a941b7?w=900&q=80',
+    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+    contentType: 'SHORT',
+    durationSec: 64,
+    viewsCount: 5320
+  },
+  {
+    slug: 'short-english-words',
+    title: '5 английских слов на каждый день',
+    description: 'Простые слова для детей с быстрым запоминанием.',
+    category: 'Языки',
+    ageGroup: '4-6',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=900&q=80',
+    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+    contentType: 'SHORT',
+    durationSec: 49,
+    viewsCount: 6900
+  },
+  {
+    slug: 'short-science-experiment',
+    title: 'Домашний научный опыт',
+    description: 'Безопасный мини-эксперимент, который можно повторить дома.',
+    category: 'Наука',
+    ageGroup: '7-9',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=900&q=80',
+    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+    contentType: 'SHORT',
+    durationSec: 73,
+    viewsCount: 2880
+  },
+  {
+    slug: 'short-nature-quiz',
+    title: 'Угадай животное по следам',
+    description: 'Короткая игра-викторина про животных.',
+    category: 'Природа',
+    ageGroup: '4-6',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1501706362039-c6e08d4e5f2b?w=900&q=80',
+    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
+    contentType: 'SHORT',
+    durationSec: 55,
+    viewsCount: 3470
+  },
+  {
+    slug: 'short-music-rhythm',
+    title: 'Ритм и музыка за минуту',
+    description: 'Учимся ловить ритм через простое упражнение.',
+    category: 'Музыка',
+    ageGroup: '7-9',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=900&q=80',
+    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
+    contentType: 'SHORT',
+    durationSec: 62,
+    viewsCount: 2710
+  }
+];
+
+const videos = [...longVideos, ...shortVideos];
 
 async function main() {
   for (const video of videos) {
@@ -168,7 +250,7 @@ async function main() {
     });
   }
 
-  console.log(`Seeded ${videos.length} videos`);
+  console.log(`Seeded ${videos.length} videos (${shortVideos.length} shorts)`);
 }
 
 main()

@@ -102,7 +102,7 @@ export function HomeFeed() {
         <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
           {skeletonItems.map((item) => (
             <div key={item} className="overflow-hidden rounded-[22px] border border-border bg-card shadow-card">
-              <div className="h-56 animate-pulse bg-gradient-to-r from-[#92c8eb] via-[#7db5db] to-[#92c8eb]" />
+              <div className="aspect-video w-full animate-pulse bg-gradient-to-r from-[#92c8eb] via-[#7db5db] to-[#92c8eb]" />
               <div className="space-y-2 p-4">
                 <div className="h-7 w-4/5 animate-pulse rounded-md bg-[#E2E8EE]" />
                 <div className="h-6 w-1/2 animate-pulse rounded-md bg-[#E7EDF2]" />
