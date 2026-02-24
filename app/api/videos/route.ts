@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
@@ -69,3 +69,4 @@ export async function GET(req: Request) {
     })),
   );
 }
+

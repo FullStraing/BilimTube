@@ -1,10 +1,12 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Loader2, Volume2, VolumeX } from 'lucide-react';
 import type { ShortsItem, ShortsResponse } from '@/types/shorts';
 import { formatDuration, formatViews } from '@/lib/video-format';
+import { useLocale } from '@/components/i18n/locale-provider';
+import { translate } from '@/lib/i18n/messages';
 
 const PAGE_SIZE = 5;
 
@@ -26,7 +28,8 @@ function ShortCard({
   muted,
   onToggleMuted,
   videoRef,
-  containerRef
+  containerRef,
+  locale
 }: {
   item: ShortsItem;
   isActive: boolean;
@@ -34,6 +37,7 @@ function ShortCard({
   onToggleMuted: () => void;
   videoRef: (node: HTMLVideoElement | null) => void;
   containerRef: (node: HTMLDivElement | null) => void;
+  locale: ReturnType<typeof useLocale>;
 }) {
   return (
     <article
@@ -63,7 +67,9 @@ function ShortCard({
 
           <div className="flex flex-col items-end gap-2">
             <span className="rounded-full bg-[#0AC95E] px-3 py-1 text-[15px] font-bold text-white">{item.ageGroup}</span>
-            <span className="rounded-full bg-black/55 px-3 py-1 text-[14px] font-semibold">{item.isFavorite ? 'В избранном' : 'Short'}</span>
+            <span className="rounded-full bg-black/55 px-3 py-1 text-[14px] font-semibold">
+              {item.isFavorite ? translate(locale, 'shorts.favoriteBadge') : translate(locale, 'common.shorts')}
+            </span>
           </div>
         </div>
 
@@ -81,10 +87,12 @@ function ShortCard({
             href={`/video/${item.slug}`}
             className="inline-flex h-10 items-center rounded-full bg-primary px-4 text-[14px] font-semibold text-white transition hover:brightness-110"
           >
-            Открыть видео
+            {translate(locale, 'shorts.openVideo')}
           </a>
 
-          <span className="ml-auto text-[13px] text-white/80">{isActive ? 'Сейчас воспроизводится' : 'Прокрутите вверх/вниз'}</span>
+          <span className="ml-auto text-[13px] text-white/80">
+            {isActive ? translate(locale, 'shorts.nowPlaying') : translate(locale, 'shorts.swipeHint')}
+          </span>
         </div>
       </div>
     </article>
@@ -92,6 +100,7 @@ function ShortCard({
 }
 
 export function ShortsFeed() {
+  const locale = useLocale();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [muted, setMuted] = useState(true);
 
@@ -213,7 +222,7 @@ export function ShortsFeed() {
   if (!items.length) {
     return (
       <div className="rounded-[22px] border border-border bg-card p-5 text-[16px] text-primary/80 shadow-card">
-        Пока нет short-видео для текущего профиля.
+        {translate(locale, 'shorts.empty')}
       </div>
     );
   }
@@ -236,6 +245,7 @@ export function ShortsFeed() {
           containerRef={(node) => {
             containerRefs.current[item.id] = node;
           }}
+          locale={locale}
         />
       ))}
 

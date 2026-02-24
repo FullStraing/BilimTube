@@ -17,6 +17,7 @@ model User {
   passwordHash String?
   accountType  AccountType
   authMethod   AuthMethod
+  language     UiLanguage     @default(ru)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   sessions     Session[]
@@ -208,6 +209,12 @@ enum AuthMethod {
   email
   phone
   google
+}
+
+enum UiLanguage {
+  ru
+  en
+  ky
 }
 
 enum ContentType {

@@ -1,9 +1,11 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
 import { VideoCard } from '@/components/video/video-card';
+import { useLocale } from '@/components/i18n/locale-provider';
+import { translate } from '@/lib/i18n/messages';
 import type { VideoListItem } from '@/types/video';
 
 type CategoryItem = {
@@ -22,7 +24,7 @@ async function fetchVideos(filters: { q: string; category: string; ageGroup: str
 
   const response = await fetch(`/api/videos?${params.toString()}`, { cache: 'no-store' });
   if (!response.ok) {
-    throw new Error('Не удалось загрузить видео');
+    throw new Error('Failed to load videos');
   }
   return (await response.json()) as VideoListItem[];
 }
@@ -30,12 +32,13 @@ async function fetchVideos(filters: { q: string; category: string; ageGroup: str
 async function fetchCategories() {
   const response = await fetch('/api/videos/categories', { cache: 'no-store' });
   if (!response.ok) {
-    throw new Error('Не удалось загрузить категории');
+    throw new Error('Failed to load categories');
   }
   return (await response.json()) as CategoryItem[];
 }
 
 export function HomeFeed() {
+  const locale = useLocale();
   const [q, setQ] = useState('');
   const [category, setCategory] = useState('all');
   const [ageGroup, setAgeGroup] = useState<(typeof AGE_OPTIONS)[number]>('all');
@@ -64,7 +67,7 @@ export function HomeFeed() {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Поиск по названию или категории"
+              placeholder={translate(locale, 'home.searchPlaceholder')}
               className="ml-2 w-full bg-transparent text-[16px] text-primary outline-none placeholder:text-primary/50"
             />
           </label>
@@ -76,7 +79,7 @@ export function HomeFeed() {
           >
             {categories.map((item) => (
               <option key={item.name} value={item.name}>
-                {item.name === 'all' ? 'Все категории' : item.name}
+                {item.name === 'all' ? translate(locale, 'home.allCategories') : item.name}
               </option>
             ))}
           </select>
@@ -92,7 +95,7 @@ export function HomeFeed() {
                 ageGroup === option ? 'bg-primary text-white' : 'bg-secondary text-primary hover:brightness-95'
               }`}
             >
-              {option === 'all' ? 'Все возрасты' : option}
+              {option === 'all' ? translate(locale, 'home.allAges') : option}
             </button>
           ))}
         </div>
@@ -113,11 +116,11 @@ export function HomeFeed() {
         </div>
       ) : videoQuery.isError ? (
         <div className="rounded-[22px] border border-border bg-card p-4 text-[16px] text-primary/80 shadow-card">
-          Не удалось загрузить ленту. Попробуйте обновить страницу.
+          {translate(locale, 'home.feedLoadError')}
         </div>
       ) : !videoQuery.data?.length ? (
         <div className="rounded-[22px] border border-border bg-card p-4 text-[16px] text-primary/80 shadow-card">
-          По выбранным фильтрам видео не найдено.
+          {translate(locale, 'home.feedEmpty')}
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
@@ -129,3 +132,4 @@ export function HomeFeed() {
     </div>
   );
 }
+

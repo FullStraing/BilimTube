@@ -5,7 +5,7 @@ export async function GET() {
   const user = await getCurrentUserFromSession();
 
   if (!user) {
-    return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+    return NextResponse.json({ error: 'РќРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ' }, { status: 401 });
   }
 
   return NextResponse.json({
@@ -13,6 +13,8 @@ export async function GET() {
     email: user.email,
     phone: user.phone,
     accountType: user.accountType,
-    authMethod: user.authMethod
+    authMethod: user.authMethod,
+    language: user.language
   });
 }
+

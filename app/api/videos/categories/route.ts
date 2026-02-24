@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
 import { prisma } from '@/lib/prisma';
@@ -24,3 +24,4 @@ export async function GET() {
     })),
   );
 }
+

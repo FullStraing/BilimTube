@@ -36,3 +36,4 @@ export function VideoCard({ video }: Props) {
     </Link>
   );
 }
+

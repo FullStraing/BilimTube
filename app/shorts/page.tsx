@@ -4,8 +4,10 @@ import { prisma } from '@/lib/prisma';
 import { MainNavigation } from '@/components/layout/main-navigation';
 import { HeaderProfileLink, PageHeader } from '@/components/layout/page-header';
 import { ShortsFeed } from '@/features/shorts/shorts-feed';
+import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 
 export default async function ShortsPage() {
+  const locale = await getLocaleFromCookie();
   const user = await getCurrentUserFromSession();
   const activeChildId = user ? await getActiveChildIdForUser(user.id) : null;
   const child =
@@ -24,7 +26,7 @@ export default async function ShortsPage() {
         center={
           <div className="flex items-center gap-3">
             <PlaySquare className="h-8 w-8 text-primary" />
-            <h1 className="text-[48px] font-bold leading-none text-primary lg:text-[36px]">Shorts</h1>
+            <h1 className="text-[48px] font-bold leading-none text-primary lg:text-[36px]">{translate(locale, 'shorts.title')}</h1>
           </div>
         }
         right={<HeaderProfileLink letter={profileLetter} />}
@@ -40,3 +42,4 @@ export default async function ShortsPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRouter } from 'next/navigation';
 import { LogOut } from 'lucide-react';
@@ -26,3 +26,4 @@ export function LogoutButton() {
     </button>
   );
 }
+

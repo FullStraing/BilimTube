@@ -18,6 +18,7 @@ import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-polic
 import { prisma } from '@/lib/prisma';
 import { MainNavigation } from '@/components/layout/main-navigation';
 import { HeaderProfileLink, PageHeader } from '@/components/layout/page-header';
+import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 
 const CATEGORY_PRESET = [
   { name: 'Наука', Icon: Microscope },
@@ -33,6 +34,7 @@ const CATEGORY_PRESET = [
 ] as const;
 
 export default async function CategoriesPage() {
+  const locale = await getLocaleFromCookie();
   const user = await getCurrentUserFromSession();
   const activeChildId = user ? await getActiveChildIdForUser(user.id) : null;
   const child =
@@ -79,7 +81,7 @@ export default async function CategoriesPage() {
         center={
           <div className="flex items-center gap-2 sm:gap-3">
             <Layers className="h-6 w-6 text-primary sm:h-8 sm:w-8" />
-            <h1 className="text-[28px] font-bold leading-none text-primary sm:text-[34px] lg:text-[36px]">Разделы</h1>
+            <h1 className="text-[28px] font-bold leading-none text-primary sm:text-[34px] lg:text-[36px]">{translate(locale, 'categories.title')}</h1>
           </div>
         }
         right={<HeaderProfileLink letter={profileLetter} />}
@@ -89,7 +91,7 @@ export default async function CategoriesPage() {
         <MainNavigation active="categories" />
 
         <div className="px-4 sm:px-5 lg:ml-[220px] lg:px-6">
-          <p className="mb-4 text-[22px] text-primary/95 sm:text-[28px] lg:text-[24px]">Выберите категорию видео</p>
+          <p className="mb-4 text-[22px] text-primary/95 sm:text-[28px] lg:text-[24px]">{translate(locale, 'categories.subtitle')}</p>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
             {categories.map((category) => (
@@ -100,7 +102,9 @@ export default async function CategoriesPage() {
               >
                 <category.Icon className="mx-auto h-10 w-10 text-primary sm:h-12 sm:w-12" />
                 <p className="mt-3 break-words text-[18px] font-bold leading-tight text-primary sm:text-[24px] lg:text-[22px]">{category.name}</p>
-                <p className="mt-1 text-[16px] text-primary/90 sm:text-[18px] lg:text-[17px]">{category.count} видео</p>
+                <p className="mt-1 text-[16px] text-primary/90 sm:text-[18px] lg:text-[17px]">
+                  {translate(locale, 'categories.videoCount', { count: category.count })}
+                </p>
               </Link>
             ))}
           </div>
@@ -109,3 +113,4 @@ export default async function CategoriesPage() {
     </div>
   );
 }
+

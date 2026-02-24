@@ -5,8 +5,10 @@ import { toTitleCase } from '@/lib/text';
 import { HomeIntroSplash } from '@/components/home/home-intro-splash';
 import { MainNavigation } from '@/components/layout/main-navigation';
 import { HeaderProfileLink, PageHeader } from '@/components/layout/page-header';
+import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 
 export default async function HomePage() {
+  const locale = await getLocaleFromCookie();
   const user = await getCurrentUserFromSession();
   const activeChildId = user ? await getActiveChildIdForUser(user.id) : null;
   const child =
@@ -37,10 +39,13 @@ export default async function HomePage() {
         <MainNavigation active="home" />
 
         <section className="px-4 sm:px-5 lg:ml-[220px] lg:px-6">
-          <h1 className="mb-4 text-[44px] font-bold leading-tight text-primary lg:mb-5 lg:text-[52px]">Привет, {helloName}!</h1>
+          <h1 className="mb-4 text-[44px] font-bold leading-tight text-primary lg:mb-5 lg:text-[52px]">
+            {translate(locale, 'home.greeting', { name: helloName })}
+          </h1>
           <HomeFeed />
         </section>
       </main>
     </div>
   );
 }
+

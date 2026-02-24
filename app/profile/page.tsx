@@ -7,12 +7,14 @@ import { LogoutButton } from '@/components/profile/logout-button';
 import { toTitleCase } from '@/lib/text';
 import { MainNavigation } from '@/components/layout/main-navigation';
 import { PageHeader } from '@/components/layout/page-header';
+import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 
 function getInitial(name: string) {
   return toTitleCase(name).charAt(0).toUpperCase() || 'M';
 }
 
 export default async function ProfilePage() {
+  const locale = await getLocaleFromCookie();
   const user = await getCurrentUserFromSession();
   const activeChildId = user ? await getActiveChildIdForUser(user.id) : null;
 
@@ -40,7 +42,7 @@ export default async function ProfilePage() {
         center={
           <div className="flex items-center gap-2 sm:gap-3">
             <User className="h-6 w-6 text-primary sm:h-8 sm:w-8" />
-            <h1 className="text-[28px] font-bold leading-none text-primary sm:text-[34px] lg:text-[36px]">Профиль</h1>
+            <h1 className="text-[28px] font-bold leading-none text-primary sm:text-[34px] lg:text-[36px]">{translate(locale, 'profile.title')}</h1>
           </div>
         }
       />
@@ -68,7 +70,7 @@ export default async function ProfilePage() {
               </div>
 
               <div className="mt-4">
-                <p className="text-[22px] font-semibold text-primary sm:text-[20px]">Интересы:</p>
+                <p className="text-[22px] font-semibold text-primary sm:text-[20px]">{translate(locale, 'profile.interests')}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {child.interests.map((interest) => (
                     <span key={interest} className="rounded-full bg-secondary px-3 py-1 text-[16px] font-semibold text-primary sm:px-4 sm:text-[16px]">
@@ -80,13 +82,13 @@ export default async function ProfilePage() {
             </section>
           ) : (
             <section className="rounded-[24px] border border-border bg-card p-5 shadow-card">
-              <p className="text-[22px] font-semibold text-primary">Профиль ребёнка не создан</p>
-              <p className="mt-2 text-[16px] text-primary/80">Создайте профиль, чтобы открыть родительские настройки.</p>
+              <p className="text-[22px] font-semibold text-primary">{translate(locale, 'profile.noChildTitle')}</p>
+              <p className="mt-2 text-[16px] text-primary/80">{translate(locale, 'profile.noChildDescription')}</p>
               <Link
                 href={'/child/create' as Route}
                 className="mt-4 inline-flex h-12 items-center justify-center rounded-[14px] bg-primary px-4 text-[16px] font-semibold text-white transition hover:brightness-110"
               >
-                Создать профиль
+                {translate(locale, 'profile.createChild')}
               </Link>
             </section>
           )}
@@ -94,15 +96,15 @@ export default async function ProfilePage() {
           <section className="grid grid-cols-3 gap-2 sm:gap-3">
             <article className="rounded-[16px] border border-border bg-card p-3 text-center shadow-card lg:p-4">
               <p className="text-[28px] font-bold leading-none text-primary sm:text-[36px]">{videosCount}</p>
-              <p className="mt-2 text-[14px] text-primary/90 sm:text-[16px]">Видео</p>
+              <p className="mt-2 text-[14px] text-primary/90 sm:text-[16px]">{translate(locale, 'profile.videos')}</p>
             </article>
             <article className="rounded-[16px] border border-border bg-card p-3 text-center shadow-card lg:p-4">
               <p className="text-[28px] font-bold leading-none text-primary sm:text-[36px]">{testsCount}</p>
-              <p className="mt-2 text-[14px] text-primary/90 sm:text-[16px]">Тесты</p>
+              <p className="mt-2 text-[14px] text-primary/90 sm:text-[16px]">{translate(locale, 'profile.tests')}</p>
             </article>
             <article className="rounded-[16px] border border-border bg-card p-3 text-center shadow-card lg:p-4">
               <p className="text-[28px] font-bold leading-none text-primary sm:text-[36px]">{favoritesCount}</p>
-              <p className="mt-2 text-[14px] text-primary/90 sm:text-[16px]">Избранное</p>
+              <p className="mt-2 text-[14px] text-primary/90 sm:text-[16px]">{translate(locale, 'profile.favorites')}</p>
             </article>
           </section>
 
@@ -113,7 +115,7 @@ export default async function ProfilePage() {
             >
               <span className="inline-flex items-center gap-3">
                 <Globe className="h-6 w-6" />
-                Язык
+                {translate(locale, 'profile.language')}
               </span>
               <ChevronRight className="h-5 w-5" />
             </Link>
@@ -124,7 +126,7 @@ export default async function ProfilePage() {
             >
               <span className="inline-flex items-center gap-3">
                 <History className="h-6 w-6" />
-                История просмотров
+                {translate(locale, 'profile.history')}
               </span>
               <ChevronRight className="h-5 w-5" />
             </Link>
@@ -135,7 +137,7 @@ export default async function ProfilePage() {
             >
               <span className="inline-flex items-center gap-3">
                 <Settings className="h-6 w-6" />
-                Настройки
+                {translate(locale, 'profile.settings')}
               </span>
               <ChevronRight className="h-5 w-5" />
             </Link>
@@ -146,7 +148,7 @@ export default async function ProfilePage() {
             >
               <span className="inline-flex items-center gap-3">
                 <Shield className="h-6 w-6" />
-                Родительский контроль
+                {translate(locale, 'profile.parental')}
               </span>
               <ChevronRight className="h-5 w-5" />
             </Link>
@@ -157,7 +159,7 @@ export default async function ProfilePage() {
             >
               <span className="inline-flex items-center gap-3">
                 <UserRound className="h-6 w-6" />
-                Сменить профиль
+                {translate(locale, 'profile.switch')}
               </span>
               <ChevronRight className="h-5 w-5" />
             </Link>
@@ -169,3 +171,4 @@ export default async function ProfilePage() {
     </div>
   );
 }
+

@@ -71,3 +71,4 @@ export const registerSchema = z
 
 export type LoginValues = z.infer<typeof loginSchema>;
 export type RegisterValues = z.infer<typeof registerSchema>;
+

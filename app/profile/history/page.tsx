@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Clock3, Film, PlaySquare } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
+import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
 import { formatDuration, formatViews } from '@/lib/video-format';
 
@@ -24,6 +25,7 @@ function formatWatchedAt(value: Date) {
 }
 
 export default async function ProfileHistoryPage() {
+  const locale = await getLocaleFromCookie();
   const user = await getCurrentUserFromSession();
   if (!user) {
     redirect('/auth/login');
@@ -65,13 +67,13 @@ export default async function ProfileHistoryPage() {
         </Link>
 
         <div>
-          <h1 className="text-[34px] font-bold text-primary">История просмотров</h1>
-          <p className="mt-1 text-[16px] text-primary/80">Последние просмотренные видео и shorts</p>
+          <h1 className="text-[34px] font-bold text-primary">{translate(locale, 'history.title')}</h1>
+          <p className="mt-1 text-[16px] text-primary/80">{translate(locale, 'history.subtitle')}</p>
         </div>
 
         {history.length === 0 ? (
           <div className="rounded-[20px] border border-border bg-card p-4 text-[16px] text-primary/80 shadow-card">
-            История пока пустая. Откройте любое видео или shorts, и оно появится здесь.
+            {translate(locale, 'history.empty')}
           </div>
         ) : (
           <div className="space-y-3">
@@ -94,7 +96,7 @@ export default async function ProfileHistoryPage() {
                   <div className="min-w-0">
                     <div className="mb-1 inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[12px] font-semibold text-primary">
                       {isShort ? <PlaySquare className="h-3.5 w-3.5" /> : <Film className="h-3.5 w-3.5" />}
-                      {isShort ? 'Shorts' : 'Видео'}
+                      {isShort ? translate(locale, 'common.shorts') : translate(locale, 'common.video')}
                     </div>
 
                     <p className="line-clamp-2 text-[20px] font-bold leading-tight text-primary">{item.video.title}</p>
@@ -116,3 +118,4 @@ export default async function ProfileHistoryPage() {
     </div>
   );
 }
+

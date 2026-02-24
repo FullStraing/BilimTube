@@ -555,3 +555,4 @@ export function AuthScaffold({ children }: { children: ReactNode }) {
     </div>
   );
 }
+

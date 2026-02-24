@@ -25,3 +25,4 @@ export async function GET(req: Request) {
     return NextResponse.redirect(new URL('/auth/login?oauth=google_unavailable', req.url));
   }
 }
+

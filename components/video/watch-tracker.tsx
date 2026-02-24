@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef } from 'react';
 
@@ -21,3 +21,4 @@ export function WatchTracker({ slug }: Props) {
 
   return null;
 }
+

@@ -2,20 +2,24 @@
 import '@/styles/globals.css';
 import { Providers } from './providers';
 import { AppShell } from '@/components/layout/app-shell';
+import { getLocaleFromCookie } from '@/lib/i18n/server';
 
 export const metadata: Metadata = {
   title: 'BilimTube',
   description: 'Образовательная видеоплатформа'
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocaleFromCookie();
+
   return (
-    <html lang="ru">
+    <html lang={locale}>
       <body>
-        <Providers>
+        <Providers locale={locale}>
           <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>
   );
 }
+

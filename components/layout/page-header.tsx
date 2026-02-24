@@ -1,4 +1,4 @@
-import type { Route } from 'next';
+﻿import type { Route } from 'next';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ArrowLeft } from 'lucide-react';
@@ -47,3 +47,4 @@ export function HeaderProfileLink({ letter }: { letter: string }) {
     </Link>
   );
 }
+

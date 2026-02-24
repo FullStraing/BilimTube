@@ -1,4 +1,4 @@
-import type { Route } from 'next';
+﻿import type { Route } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
@@ -21,3 +21,4 @@ export default function ProfileSettingsPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-export type VideoSummary = {
+﻿export type VideoSummary = {
   id: string;
   title: string;
   category: string;
@@ -11,3 +11,4 @@ export type Category = {
   name: string;
   description?: string;
 };
+

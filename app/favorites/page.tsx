@@ -4,8 +4,10 @@ import { prisma } from '@/lib/prisma';
 import { VideoCard } from '@/components/video/video-card';
 import { MainNavigation } from '@/components/layout/main-navigation';
 import { HeaderProfileLink, PageHeader } from '@/components/layout/page-header';
+import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 
 export default async function FavoritesPage() {
+  const locale = await getLocaleFromCookie();
   const user = await getCurrentUserFromSession();
   const activeChildId = user ? await getActiveChildIdForUser(user.id) : null;
   const child =
@@ -47,7 +49,7 @@ export default async function FavoritesPage() {
         center={
           <div className="flex items-center gap-3">
             <Heart className="h-8 w-8 text-primary" />
-            <h1 className="text-[48px] font-bold leading-none text-primary lg:text-[36px]">Избранное</h1>
+            <h1 className="text-[48px] font-bold leading-none text-primary lg:text-[36px]">{translate(locale, 'favorites.title')}</h1>
           </div>
         }
         right={<HeaderProfileLink letter={profileLetter} />}
@@ -59,7 +61,7 @@ export default async function FavoritesPage() {
         <div className="mx-auto w-full max-w-6xl lg:ml-[220px]">
           {!user ? (
             <div className="rounded-[22px] border border-border bg-card p-4 text-[16px] text-primary/85 shadow-card">
-              Войдите в аккаунт, чтобы сохранять и смотреть избранные видео.
+              {translate(locale, 'favorites.loginRequired')}
             </div>
           ) : favorites.length ? (
             <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
@@ -69,7 +71,7 @@ export default async function FavoritesPage() {
             </div>
           ) : (
             <div className="rounded-[22px] border border-border bg-card p-4 text-[16px] text-primary/85 shadow-card">
-              Вы пока ничего не добавили в избранное.
+              {translate(locale, 'favorites.empty')}
             </div>
           )}
         </div>
@@ -77,3 +79,4 @@ export default async function FavoritesPage() {
     </div>
   );
 }
+

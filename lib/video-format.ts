@@ -1,4 +1,4 @@
-export function formatDuration(durationSec: number) {
+﻿export function formatDuration(durationSec: number) {
   const minutes = Math.floor(durationSec / 60);
   const seconds = durationSec % 60;
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -13,3 +13,4 @@ export function formatViews(viewsCount: number) {
   }
   return `${viewsCount} просмотров`;
 }
+

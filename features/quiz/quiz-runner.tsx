@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import type { Route } from 'next';
@@ -51,8 +51,8 @@ export function QuizRunner({ slug, quizTitle, quizDescription, questions }: Prop
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
         toast({
-          title: 'Ошибка',
-          description: payload?.error ?? 'Не удалось отправить тест'
+          title: 'РћС€РёР±РєР°',
+          description: payload?.error ?? 'РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РїСЂР°РІРёС‚СЊ С‚РµСЃС‚'
         });
         return;
       }
@@ -70,9 +70,9 @@ export function QuizRunner({ slug, quizTitle, quizDescription, questions }: Prop
   if (result) {
     return (
       <section className="rounded-[22px] border border-border bg-card p-5 shadow-card">
-        <h2 className="text-[32px] font-bold text-primary">Результат теста</h2>
+        <h2 className="text-[32px] font-bold text-primary">Р РµР·СѓР»СЊС‚Р°С‚ С‚РµСЃС‚Р°</h2>
         <p className="mt-2 text-[22px] text-primary">
-          {result.score} из {result.maxScore} ({result.percentage}%)
+          {result.score} РёР· {result.maxScore} ({result.percentage}%)
         </p>
         <div className="mt-4 flex gap-3">
           <button
@@ -80,7 +80,7 @@ export function QuizRunner({ slug, quizTitle, quizDescription, questions }: Prop
             onClick={() => router.push(`/video/${slug}` as Route)}
             className="h-11 rounded-[14px] bg-primary px-4 text-[15px] font-semibold text-white transition hover:brightness-110"
           >
-            К видео
+            Рљ РІРёРґРµРѕ
           </button>
           <button
             type="button"
@@ -90,7 +90,7 @@ export function QuizRunner({ slug, quizTitle, quizDescription, questions }: Prop
             }}
             className="h-11 rounded-[14px] bg-secondary px-4 text-[15px] font-semibold text-primary transition hover:brightness-95"
           >
-            Пройти снова
+            РџСЂРѕР№С‚Рё СЃРЅРѕРІР°
           </button>
         </div>
       </section>
@@ -106,7 +106,7 @@ export function QuizRunner({ slug, quizTitle, quizDescription, questions }: Prop
 
       {questions.map((question, index) => (
         <article key={question.id} className="rounded-[22px] border border-border bg-card p-5 shadow-card">
-          <p className="text-[15px] text-primary/65">Вопрос {index + 1}</p>
+          <p className="text-[15px] text-primary/65">Р’РѕРїСЂРѕСЃ {index + 1}</p>
           <h2 className="mt-1 text-[22px] font-semibold text-primary">{question.text}</h2>
           <div className="mt-3 space-y-2">
             {question.options.map((option) => {
@@ -135,9 +135,10 @@ export function QuizRunner({ slug, quizTitle, quizDescription, questions }: Prop
           disabled={!isReady || isSubmitting}
           className="h-12 w-full rounded-[16px] bg-primary text-[16px] font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
         >
-          {isSubmitting ? 'Проверяем...' : 'Завершить тест'}
+          {isSubmitting ? 'РџСЂРѕРІРµСЂСЏРµРј...' : 'Р—Р°РІРµСЂС€РёС‚СЊ С‚РµСЃС‚'}
         </button>
       </div>
     </section>
   );
 }
+

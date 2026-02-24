@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Heart, Share2 } from 'lucide-react';
@@ -26,22 +26,22 @@ export function VideoActions({ videoId, videoSlug, initialIsFavorite }: Props) {
 
       if (response.status === 401) {
         toast({
-          title: 'Нужен вход',
-          description: 'Войдите в аккаунт, чтобы добавлять в избранное.'
+          title: 'РќСѓР¶РµРЅ РІС…РѕРґ',
+          description: 'Р’РѕР№РґРёС‚Рµ РІ Р°РєРєР°СѓРЅС‚, С‡С‚РѕР±С‹ РґРѕР±Р°РІР»СЏС‚СЊ РІ РёР·Р±СЂР°РЅРЅРѕРµ.'
         });
         return;
       }
 
       if (!response.ok) {
-        throw new Error('Не удалось обновить избранное');
+        throw new Error('РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ РёР·Р±СЂР°РЅРЅРѕРµ');
       }
 
       const result = (await response.json()) as { isFavorite: boolean };
       setIsFavorite(result.isFavorite);
     } catch {
       toast({
-        title: 'Ошибка',
-        description: 'Не удалось обновить избранное.'
+        title: 'РћС€РёР±РєР°',
+        description: 'РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ РёР·Р±СЂР°РЅРЅРѕРµ.'
       });
     } finally {
       setIsPending(false);
@@ -60,13 +60,13 @@ export function VideoActions({ videoId, videoSlug, initialIsFavorite }: Props) {
       }
       await navigator.clipboard.writeText(shareUrl);
       toast({
-        title: 'Ссылка скопирована',
-        description: 'Отправьте ее тому, с кем хотите поделиться видео.'
+        title: 'РЎСЃС‹Р»РєР° СЃРєРѕРїРёСЂРѕРІР°РЅР°',
+        description: 'РћС‚РїСЂР°РІСЊС‚Рµ РµРµ С‚РѕРјСѓ, СЃ РєРµРј С…РѕС‚РёС‚Рµ РїРѕРґРµР»РёС‚СЊСЃСЏ РІРёРґРµРѕ.'
       });
     } catch {
       toast({
-        title: 'Не удалось поделиться',
-        description: 'Попробуйте снова.'
+        title: 'РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕРґРµР»РёС‚СЊСЃСЏ',
+        description: 'РџРѕРїСЂРѕР±СѓР№С‚Рµ СЃРЅРѕРІР°.'
       });
     }
   };
@@ -82,7 +82,7 @@ export function VideoActions({ videoId, videoSlug, initialIsFavorite }: Props) {
           isFavorite ? 'bg-primary text-white hover:brightness-110' : 'bg-secondary text-primary hover:brightness-95',
           isPending && 'opacity-70',
         )}
-        aria-label="Добавить в избранное"
+        aria-label="Р”РѕР±Р°РІРёС‚СЊ РІ РёР·Р±СЂР°РЅРЅРѕРµ"
       >
         <Heart className={cn('h-6 w-6', isFavorite && 'fill-current')} />
       </button>
@@ -90,10 +90,11 @@ export function VideoActions({ videoId, videoSlug, initialIsFavorite }: Props) {
         type="button"
         onClick={handleShare}
         className="grid h-14 w-14 place-items-center rounded-[18px] bg-secondary text-primary transition hover:brightness-95"
-        aria-label="Поделиться"
+        aria-label="РџРѕРґРµР»РёС‚СЊСЃСЏ"
       >
         <Share2 className="h-6 w-6" />
       </button>
     </div>
   );
 }
+

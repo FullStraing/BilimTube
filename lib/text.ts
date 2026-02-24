@@ -1,4 +1,4 @@
-export function toTitleCase(value: string) {
+﻿export function toTitleCase(value: string) {
   return value
     .trim()
     .replace(/\s+/g, ' ')
@@ -15,3 +15,4 @@ export function toTitleCase(value: string) {
     )
     .join(' ');
 }
+

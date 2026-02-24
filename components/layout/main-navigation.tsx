@@ -1,26 +1,39 @@
+﻿'use client';
+
 import type { Route } from 'next';
 import Link from 'next/link';
 import type { ComponentType } from 'react';
 import { Heart, Home, Layers, PlaySquare, User } from 'lucide-react';
+import { useLocale } from '@/components/i18n/locale-provider';
+import { translate } from '@/lib/i18n/messages';
 
 type MainNavKey = 'home' | 'shorts' | 'categories' | 'favorites' | 'profile';
 
 type NavItem = {
   key: MainNavKey;
   href: Route;
-  label: string;
   icon: ComponentType<{ className?: string }>;
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { key: 'home', href: '/home' as Route, label: 'Главная', icon: Home },
-  { key: 'shorts', href: '/shorts' as Route, label: 'Shorts', icon: PlaySquare },
-  { key: 'categories', href: '/categories' as Route, label: 'Разделы', icon: Layers },
-  { key: 'favorites', href: '/favorites' as Route, label: 'Избранное', icon: Heart },
-  { key: 'profile', href: '/profile' as Route, label: 'Профиль', icon: User }
+  { key: 'home', href: '/home' as Route, icon: Home },
+  { key: 'shorts', href: '/shorts' as Route, icon: PlaySquare },
+  { key: 'categories', href: '/categories' as Route, icon: Layers },
+  { key: 'favorites', href: '/favorites' as Route, icon: Heart },
+  { key: 'profile', href: '/profile' as Route, icon: User }
 ];
 
+const LABEL_KEYS: Record<MainNavKey, string> = {
+  home: 'nav.home',
+  shorts: 'nav.shorts',
+  categories: 'nav.categories',
+  favorites: 'nav.favorites',
+  profile: 'nav.profile'
+};
+
 export function MainNavigation({ active }: { active: MainNavKey }) {
+  const locale = useLocale();
+
   return (
     <>
       <aside className="fixed bottom-0 left-0 top-[72px] hidden w-[220px] border-r border-border bg-card px-4 py-5 lg:block">
@@ -28,6 +41,8 @@ export function MainNavigation({ active }: { active: MainNavKey }) {
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = item.key === active;
+            const label = translate(locale, LABEL_KEYS[item.key]);
+
             return (
               <Link
                 key={item.key}
@@ -37,7 +52,7 @@ export function MainNavigation({ active }: { active: MainNavKey }) {
                 }`}
               >
                 <Icon className="h-5 w-5" />
-                {item.label}
+                {label}
               </Link>
             );
           })}
@@ -49,14 +64,16 @@ export function MainNavigation({ active }: { active: MainNavKey }) {
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = item.key === active;
+            const label = translate(locale, LABEL_KEYS[item.key]);
+
             return (
               <Link
                 key={item.key}
                 href={item.href}
-                className={`flex flex-col items-center ${isActive ? 'text-primary' : 'text-[#8EC7E6]'}`}
+                className={`flex min-w-0 flex-col items-center ${isActive ? 'text-primary' : 'text-[#8EC7E6]'}`}
               >
                 <Icon className="h-6 w-6" />
-                <span className="text-[13px] font-semibold">{item.label}</span>
+                <span className="max-w-full truncate text-[13px] font-semibold">{label}</span>
               </Link>
             );
           })}
@@ -65,3 +82,5 @@ export function MainNavigation({ active }: { active: MainNavKey }) {
     </>
   );
 }
+
+

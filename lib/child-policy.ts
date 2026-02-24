@@ -1,8 +1,8 @@
-import type { Prisma } from '@prisma/client';
+﻿import type { Prisma } from '@prisma/client';
 import { getActiveChildIdForUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-const ENTERTAINMENT_CATEGORIES = ['Мультфильмы', 'Игры', 'Развлечения'];
+const ENTERTAINMENT_CATEGORIES = ['РњСѓР»СЊС‚С„РёР»СЊРјС‹', 'РРіСЂС‹', 'Р Р°Р·РІР»РµС‡РµРЅРёСЏ'];
 
 export type ActiveChildPolicy = {
   id: string;
@@ -44,3 +44,4 @@ export function buildVideoPolicyClauses(policy: ActiveChildPolicy | null): Prism
 
   return clauses;
 }
+

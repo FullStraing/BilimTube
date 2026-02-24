@@ -9,6 +9,7 @@ import {
   normalizePhone,
   setSessionCookie
 } from '@/lib/auth';
+import { setLocaleCookie } from '@/lib/i18n/server';
 
 const registerPayloadSchema = z.object({
   method: z.enum(['email', 'phone']),
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
     const parsed = registerPayloadSchema.safeParse(json);
 
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Невалидные данные' }, { status: 400 });
+      return NextResponse.json({ error: 'РќРµРІР°Р»РёРґРЅС‹Рµ РґР°РЅРЅС‹Рµ' }, { status: 400 });
     }
 
     const { method, identifier, password, accountType } = parsed.data;
@@ -31,11 +32,11 @@ export async function POST(req: Request) {
     const phone = method === 'phone' ? normalizePhone(identifier) : null;
 
     if (method === 'email' && !z.string().email().safeParse(email).success) {
-      return NextResponse.json({ error: 'Некорректный email' }, { status: 400 });
+      return NextResponse.json({ error: 'РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ email' }, { status: 400 });
     }
 
     if (method === 'phone' && (!phone || phone.length < 8)) {
-      return NextResponse.json({ error: 'Некорректный телефон' }, { status: 400 });
+      return NextResponse.json({ error: 'РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ С‚РµР»РµС„РѕРЅ' }, { status: 400 });
     }
 
     const existingUser = await prisma.user.findFirst({
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
     });
 
     if (existingUser) {
-      return NextResponse.json({ error: 'Аккаунт уже существует' }, { status: 409 });
+      return NextResponse.json({ error: 'РђРєРєР°СѓРЅС‚ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚' }, { status: 409 });
     }
 
     const passwordHash = await hash(password, 10);
@@ -59,7 +60,8 @@ export async function POST(req: Request) {
         phone,
         passwordHash,
         accountType,
-        authMethod: method
+        authMethod: method,
+        language: 'ru'
       }
     });
 
@@ -75,15 +77,18 @@ export async function POST(req: Request) {
     });
 
     await setSessionCookie(token, expiresAt);
+    await setLocaleCookie(user.language);
 
     return NextResponse.json({
       id: user.id,
       email: user.email,
       phone: user.phone,
       accountType: user.accountType,
-      authMethod: user.authMethod
+      authMethod: user.authMethod,
+      language: user.language
     });
   } catch {
-    return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
+    return NextResponse.json({ error: 'РћС€РёР±РєР° СЃРµСЂРІРµСЂР°' }, { status: 500 });
   }
 }
+

@@ -99,3 +99,4 @@ export async function fetchGoogleUserInfo(accessToken: string) {
 
   return (await response.json()) as GoogleUserInfoResponse;
 }
+

@@ -1,4 +1,4 @@
-export class ApiError extends Error {
+﻿export class ApiError extends Error {
   status: number;
   info?: unknown;
 
@@ -29,3 +29,4 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 
   return data as T;
 }
+

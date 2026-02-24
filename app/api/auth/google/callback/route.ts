@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSessionExpiry, createSessionToken, setSessionCookie } from '@/lib/auth';
 import { exchangeGoogleCode, fetchGoogleUserInfo } from '@/lib/google-oauth';
+import { setLocaleCookie } from '@/lib/i18n/server';
 
 const GOOGLE_STATE_COOKIE = 'google_oauth_state';
 
@@ -54,7 +55,8 @@ export async function GET(req: Request) {
           googleId: profile.sub,
           passwordHash: null,
           accountType: 'self',
-          authMethod: 'google'
+          authMethod: 'google',
+          language: 'ru'
         }
       });
       isNewUser = true;
@@ -80,6 +82,7 @@ export async function GET(req: Request) {
     });
 
     await setSessionCookie(sessionToken, expiresAt);
+    await setLocaleCookie(user.language);
 
     const childrenCount = await prisma.childProfile.count({ where: { userId: user.id } });
     const destination = isNewUser || childrenCount === 0 ? '/child/create' : '/home';
@@ -89,3 +92,4 @@ export async function GET(req: Request) {
     return NextResponse.redirect(new URL('/auth/login?oauth=failed', req.url));
   }
 }
+

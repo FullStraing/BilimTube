@@ -1,4 +1,4 @@
-import { apiFetch } from './fetcher';
+﻿import { apiFetch } from './fetcher';
 import type { Category, VideoSummary } from './types';
 
 export const api = {
@@ -6,3 +6,4 @@ export const api = {
   getShorts: () => apiFetch<VideoSummary[]>('/videos/shorts'),
   getCategories: () => apiFetch<Category[]>('/categories')
 };
+
