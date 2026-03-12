@@ -23,7 +23,7 @@ const longVideos = [
     description: 'Древний мир динозавров простыми словами.',
     category: 'Наука',
     ageGroup: '7-9',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1501706362039-c6e08d4e5f2b?w=1200&q=80',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1547700055-b61cacebece9?w=1200&q=80',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     contentType: 'LONG',
     durationSec: 480,
