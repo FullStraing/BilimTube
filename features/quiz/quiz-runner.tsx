@@ -5,6 +5,8 @@ import type { Route } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
+import { useLocale } from '@/components/i18n/locale-provider';
+import { translate } from '@/lib/i18n/messages';
 
 type QuizQuestion = {
   id: string;
@@ -21,6 +23,7 @@ type Props = {
 };
 
 export function QuizRunner({ slug, quizTitle, quizDescription, questions }: Props) {
+  const locale = useLocale();
   const router = useRouter();
   const { toast } = useToast();
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -51,8 +54,8 @@ export function QuizRunner({ slug, quizTitle, quizDescription, questions }: Prop
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
         toast({
-          title: 'РћС€РёР±РєР°',
-          description: payload?.error ?? 'РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РїСЂР°РІРёС‚СЊ С‚РµСЃС‚'
+          title: translate(locale, 'quiz.errorTitle'),
+          description: payload?.error ?? translate(locale, 'quiz.submitError')
         });
         return;
       }
@@ -70,9 +73,9 @@ export function QuizRunner({ slug, quizTitle, quizDescription, questions }: Prop
   if (result) {
     return (
       <section className="rounded-[22px] border border-border bg-card p-5 shadow-card">
-        <h2 className="text-[32px] font-bold text-primary">Р РµР·СѓР»СЊС‚Р°С‚ С‚РµСЃС‚Р°</h2>
+        <h2 className="text-[32px] font-bold text-primary">{translate(locale, 'quiz.resultTitle')}</h2>
         <p className="mt-2 text-[22px] text-primary">
-          {result.score} РёР· {result.maxScore} ({result.percentage}%)
+          {result.score} / {result.maxScore} ({result.percentage}%)
         </p>
         <div className="mt-4 flex gap-3">
           <button
@@ -80,7 +83,7 @@ export function QuizRunner({ slug, quizTitle, quizDescription, questions }: Prop
             onClick={() => router.push(`/video/${slug}` as Route)}
             className="h-11 rounded-[14px] bg-primary px-4 text-[15px] font-semibold text-white transition hover:brightness-110"
           >
-            Рљ РІРёРґРµРѕ
+            {translate(locale, 'quiz.toVideo')}
           </button>
           <button
             type="button"
@@ -90,7 +93,7 @@ export function QuizRunner({ slug, quizTitle, quizDescription, questions }: Prop
             }}
             className="h-11 rounded-[14px] bg-secondary px-4 text-[15px] font-semibold text-primary transition hover:brightness-95"
           >
-            РџСЂРѕР№С‚Рё СЃРЅРѕРІР°
+            {translate(locale, 'quiz.retry')}
           </button>
         </div>
       </section>
@@ -106,7 +109,7 @@ export function QuizRunner({ slug, quizTitle, quizDescription, questions }: Prop
 
       {questions.map((question, index) => (
         <article key={question.id} className="rounded-[22px] border border-border bg-card p-5 shadow-card">
-          <p className="text-[15px] text-primary/65">Р’РѕРїСЂРѕСЃ {index + 1}</p>
+          <p className="text-[15px] text-primary/65">{translate(locale, 'quiz.question', { index: index + 1 })}</p>
           <h2 className="mt-1 text-[22px] font-semibold text-primary">{question.text}</h2>
           <div className="mt-3 space-y-2">
             {question.options.map((option) => {
@@ -135,7 +138,7 @@ export function QuizRunner({ slug, quizTitle, quizDescription, questions }: Prop
           disabled={!isReady || isSubmitting}
           className="h-12 w-full rounded-[16px] bg-primary text-[16px] font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
         >
-          {isSubmitting ? 'РџСЂРѕРІРµСЂСЏРµРј...' : 'Р—Р°РІРµСЂС€РёС‚СЊ С‚РµСЃС‚'}
+          {isSubmitting ? translate(locale, 'quiz.checking') : translate(locale, 'quiz.finish')}
         </button>
       </div>
     </section>

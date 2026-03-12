@@ -1,4 +1,6 @@
 ﻿import { PrismaClient } from '@prisma/client';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const prisma = new PrismaClient();
 
@@ -65,90 +67,52 @@ const longVideos = [
   }
 ];
 
-const shortVideos = [
-  {
-    slug: 'short-planet-facts',
-    title: '3 факта о планетах',
-    description: 'Быстро узнаем необычные факты о планетах Солнечной системы.',
-    category: 'Наука',
-    ageGroup: '7-9',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=900&q=80',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-    contentType: 'SHORT',
-    durationSec: 58,
-    viewsCount: 4100
-  },
-  {
-    slug: 'short-math-trick',
-    title: 'Математика за 1 минуту',
-    description: 'Лайфхак для быстрого умножения на 9.',
-    category: 'Математика',
-    ageGroup: '10-13',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1635372722656-389f87a941b7?w=900&q=80',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-    contentType: 'SHORT',
-    durationSec: 64,
-    viewsCount: 5320
-  },
-  {
-    slug: 'short-english-words',
-    title: '5 английских слов на каждый день',
-    description: 'Простые слова для детей с быстрым запоминанием.',
-    category: 'Языки',
-    ageGroup: '4-6',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=900&q=80',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-    contentType: 'SHORT',
-    durationSec: 49,
-    viewsCount: 6900
-  },
-  {
-    slug: 'short-science-experiment',
-    title: 'Домашний научный опыт',
-    description: 'Безопасный мини-эксперимент, который можно повторить дома.',
-    category: 'Наука',
-    ageGroup: '7-9',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=900&q=80',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
-    contentType: 'SHORT',
-    durationSec: 73,
-    viewsCount: 2880
-  },
-  {
-    slug: 'short-nature-quiz',
-    title: 'Угадай животное по следам',
-    description: 'Короткая игра-викторина про животных.',
-    category: 'Природа',
-    ageGroup: '4-6',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1501706362039-c6e08d4e5f2b?w=900&q=80',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
-    contentType: 'SHORT',
-    durationSec: 55,
-    viewsCount: 3470
-  },
-  {
-    slug: 'short-music-rhythm',
-    title: 'Ритм и музыка за минуту',
-    description: 'Учимся ловить ритм через простое упражнение.',
-    category: 'Музыка',
-    ageGroup: '7-9',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=900&q=80',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
-    contentType: 'SHORT',
-    durationSec: 62,
-    viewsCount: 2710
-  }
+const shortCategories = [
+  'Наука',
+  'Математика',
+  'Языки',
+  'Искусство',
+  'Музыка',
+  'Спорт',
+  'Мультфильмы',
+  'Игры',
+  'Творчество',
+  'Природа'
 ];
 
-const videos = [...longVideos, ...shortVideos];
+const shortAgeGroups = ['4-6', '7-9', '10-13'];
+
+const localShortFiles = fs
+  .readdirSync(path.join(process.cwd(), 'public', 'assets', 'shorts'))
+  .filter((file) => /\.(mp4|mov|webm)$/i.test(file))
+  .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+const shortVideos = localShortFiles.map((file, index) => ({
+  slug: `short-local-${String(index + 1).padStart(2, '0')}`,
+  title: `Short #${index + 1}`,
+  description: `Локальное короткое видео #${index + 1}.`,
+  category: shortCategories[index % shortCategories.length],
+  ageGroup: shortAgeGroups[index % shortAgeGroups.length],
+  thumbnailUrl: '/assets/bars.png',
+  videoUrl: `/assets/shorts/${file}`,
+  contentType: 'SHORT',
+  durationSec: 30,
+  viewsCount: 0
+}));
 
 async function main() {
-  for (const video of videos) {
+  for (const video of longVideos) {
     await prisma.video.upsert({
       where: { slug: video.slug },
       create: video,
       update: video
     });
+  }
+
+  await prisma.video.deleteMany({ where: { contentType: 'SHORT' } });
+
+  if (shortVideos.length > 0) {
+    await prisma.video.createMany({ data: shortVideos });
   }
 
   const solarVideo = await prisma.video.findUnique({ where: { slug: 'solar-system-for-kids' }, select: { id: true } });
@@ -250,7 +214,7 @@ async function main() {
     });
   }
 
-  console.log(`Seeded ${videos.length} videos (${shortVideos.length} shorts)`);
+  console.log(`Seeded ${longVideos.length + shortVideos.length} videos (${shortVideos.length} shorts)`);
 }
 
 main()

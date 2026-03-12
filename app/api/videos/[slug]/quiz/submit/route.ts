@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
@@ -9,23 +9,22 @@ const submitSchema = z.object({
     z.object({
       questionId: z.string().min(1),
       optionId: z.string().min(1)
-    }),
+    })
   )
 });
 
-export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ slug: string }> },
-) {
+export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const user = await getCurrentUserFromSession();
   if (!user) {
-    return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+    return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
   }
+
   const activeChildId = await getActiveChildIdForUser(user.id);
   const policy = await getActiveChildPolicy(user.id);
   const policyClauses = buildVideoPolicyClauses(policy);
+
   if (!activeChildId) {
-    return NextResponse.json({ error: 'Сначала создайте или выберите профиль ребенка' }, { status: 409 });
+    return NextResponse.json({ error: 'Create or select child profile first' }, { status: 409 });
   }
 
   const { slug } = await params;
@@ -33,7 +32,7 @@ export async function POST(
   const parsed = submitSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Невалидные данные' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
   }
 
   const video = await prisma.video.findFirst({
@@ -62,16 +61,18 @@ export async function POST(
   });
 
   if (!video) {
-    return NextResponse.json({ error: 'Видео не найдено' }, { status: 404 });
+    return NextResponse.json({ error: 'Video not found' }, { status: 404 });
   }
+
   if (!video.quiz) {
-    return NextResponse.json({ error: 'Тест пока не добавлен' }, { status: 404 });
+    return NextResponse.json({ error: 'Quiz is not available yet' }, { status: 404 });
   }
 
   const answersMap = new Map(parsed.data.answers.map((answer) => [answer.questionId, answer.optionId]));
   const maxScore = video.quiz.questions.length;
+
   if (!maxScore) {
-    return NextResponse.json({ error: 'В тесте нет вопросов' }, { status: 400 });
+    return NextResponse.json({ error: 'Quiz has no questions' }, { status: 400 });
   }
 
   let score = 0;

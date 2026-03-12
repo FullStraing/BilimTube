@@ -1,9 +1,10 @@
-import type { Route } from 'next';
+﻿import type { Route } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
 import { getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
 import { QuizRunner } from '@/features/quiz/quiz-runner';
 
@@ -13,6 +14,7 @@ export default async function VideoQuizPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const locale = await getLocaleFromCookie();
   const user = await getCurrentUserFromSession();
   if (!user) {
     redirect('/auth/login');
@@ -63,20 +65,20 @@ export default async function VideoQuizPage({
         <Link
           href={`/video/${slug}` as Route}
           className="inline-flex h-10 w-10 items-center justify-center rounded-full text-primary transition hover:bg-secondary"
-          aria-label="Назад"
+          aria-label={translate(locale, 'quiz.back')}
         >
           <ArrowLeft className="h-6 w-6" />
         </Link>
 
         {!video.quiz ? (
           <div className="rounded-[22px] border border-border bg-card p-5 shadow-card">
-            <h1 className="text-[30px] font-bold text-primary">Тест пока не добавлен</h1>
-            <p className="mt-2 text-[16px] text-primary/80">Для этого видео тест появится позже.</p>
+            <h1 className="text-[30px] font-bold text-primary">{translate(locale, 'quiz.notAddedTitle')}</h1>
+            <p className="mt-2 text-[16px] text-primary/80">{translate(locale, 'quiz.notAddedDescription')}</p>
           </div>
         ) : (
           <QuizRunner
             slug={slug}
-            quizTitle={video.quiz.title || `Тест: ${video.title}`}
+            quizTitle={video.quiz.title || translate(locale, 'quiz.defaultTitle', { title: video.title })}
             quizDescription={video.quiz.description}
             questions={video.quiz.questions}
           />
