@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
 import { getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { localizeQuiz } from '@/lib/content-localization';
 import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
 import { QuizRunner } from '@/features/quiz/quiz-runner';
@@ -58,6 +59,7 @@ export default async function VideoQuizPage({
   if (!video) {
     notFound();
   }
+  const localizedQuiz = video.quiz ? localizeQuiz(slug, video.quiz, locale) : null;
 
   return (
     <div className="min-h-screen bg-background px-5 py-5">
@@ -78,9 +80,9 @@ export default async function VideoQuizPage({
         ) : (
           <QuizRunner
             slug={slug}
-            quizTitle={video.quiz.title || translate(locale, 'quiz.defaultTitle', { title: video.title })}
-            quizDescription={video.quiz.description}
-            questions={video.quiz.questions}
+            quizTitle={localizedQuiz?.title || translate(locale, 'quiz.defaultTitle', { title: video.title })}
+            quizDescription={localizedQuiz?.description}
+            questions={localizedQuiz?.questions ?? []}
           />
         )}
       </div>

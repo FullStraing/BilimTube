@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Loader2, Volume2, VolumeX } from 'lucide-react';
 import type { ShortsItem, ShortsResponse } from '@/types/shorts';
+import { localizeVideoList } from '@/lib/content-localization';
 import { formatDuration, formatViews } from '@/lib/video-format';
 import { useLocale } from '@/components/i18n/locale-provider';
 import { translate } from '@/lib/i18n/messages';
@@ -116,7 +117,8 @@ export function ShortsFeed() {
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined
   });
 
-  const items = useMemo(() => query.data?.pages.flatMap((page) => page.items) ?? [], [query.data]);
+  const rawItems = useMemo(() => query.data?.pages.flatMap((page) => page.items) ?? [], [query.data]);
+  const items = useMemo(() => localizeVideoList(rawItems, locale), [rawItems, locale]);
 
   useEffect(() => {
     if (!items.length || activeId) return;

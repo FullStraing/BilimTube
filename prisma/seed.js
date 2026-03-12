@@ -81,6 +81,18 @@ const shortCategories = [
 ];
 
 const shortAgeGroups = ['4-6', '7-9', '10-13'];
+const shortMeta = [
+  { title: 'Мини-эксперимент: вулкан', description: 'Наглядный опыт для детей за 30 секунд.' },
+  { title: 'Математика: трюк с числами', description: 'Быстрый способ считать в уме.' },
+  { title: 'Английский: 3 слова дня', description: 'Запоминаем полезные слова с примерами.' },
+  { title: 'Искусство: рисуем форму', description: 'Короткий творческий челлендж для ребёнка.' },
+  { title: 'Музыка: поймай ритм', description: 'Простое упражнение на чувство ритма.' },
+  { title: 'Спорт: быстрая разминка', description: 'Безопасная активность дома за минуту.' },
+  { title: 'Мультфильм: маленькая история', description: 'Добрый короткий сюжет для настроения.' },
+  { title: 'Игра на внимание', description: 'Тренируем фокус и реакцию в формате short.' },
+  { title: 'Творчество: идея за минуту', description: 'Небольшое задание для развития фантазии.' },
+  { title: 'Природа: факт дня', description: 'Интересный факт о мире природы.' }
+];
 
 const localShortFiles = fs
   .readdirSync(path.join(process.cwd(), 'public', 'assets', 'shorts'))
@@ -89,8 +101,8 @@ const localShortFiles = fs
 
 const shortVideos = localShortFiles.map((file, index) => ({
   slug: `short-local-${String(index + 1).padStart(2, '0')}`,
-  title: `Short #${index + 1}`,
-  description: `Локальное короткое видео #${index + 1}.`,
+  title: shortMeta[index % shortMeta.length].title,
+  description: shortMeta[index % shortMeta.length].description,
   category: shortCategories[index % shortCategories.length],
   ageGroup: shortAgeGroups[index % shortAgeGroups.length],
   thumbnailUrl: '/assets/bars.png',

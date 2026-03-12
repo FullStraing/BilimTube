@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
 import { VideoCard } from '@/components/video/video-card';
 import { useLocale } from '@/components/i18n/locale-provider';
+import { localizeVideoList } from '@/lib/content-localization';
 import { translate } from '@/lib/i18n/messages';
 import type { VideoListItem } from '@/types/video';
 
@@ -56,6 +57,10 @@ export function HomeFeed() {
   const categories = useMemo(
     () => [{ name: 'all', count: 0 }, ...(categoryQuery.data ?? [])],
     [categoryQuery.data],
+  );
+  const localizedVideos = useMemo(
+    () => localizeVideoList(videoQuery.data ?? [], locale),
+    [videoQuery.data, locale]
   );
 
   return (
@@ -118,13 +123,13 @@ export function HomeFeed() {
         <div className="rounded-[22px] border border-border bg-card p-4 text-[16px] text-primary/80 shadow-card">
           {translate(locale, 'home.feedLoadError')}
         </div>
-      ) : !videoQuery.data?.length ? (
+      ) : !localizedVideos.length ? (
         <div className="rounded-[22px] border border-border bg-card p-4 text-[16px] text-primary/80 shadow-card">
           {translate(locale, 'home.feedEmpty')}
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
-          {videoQuery.data.map((video) => (
+          {localizedVideos.map((video) => (
             <VideoCard key={video.id} video={video} />
           ))}
         </div>

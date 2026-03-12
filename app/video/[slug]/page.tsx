@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { localizeVideo, localizeVideoList } from '@/lib/content-localization';
+import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
 import { formatDuration, formatViews } from '@/lib/video-format';
 import { VideoActions } from '@/components/video/video-actions';
@@ -21,6 +23,7 @@ export default async function VideoPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const locale = await getLocaleFromCookie();
   const user = await getCurrentUserFromSession();
   const activeChildId = user ? await getActiveChildIdForUser(user.id) : null;
   const policy = user ? await getActiveChildPolicy(user.id) : null;
@@ -55,6 +58,7 @@ export default async function VideoPage({
   if (!video) {
     notFound();
   }
+  const localizedVideo = localizeVideo(video, locale);
 
   const similar = await prisma.video.findMany({
     where: {
@@ -78,6 +82,7 @@ export default async function VideoPage({
       viewsCount: true
     }
   });
+  const localizedSimilar = localizeVideoList(similar, locale);
 
   let isFavorite = false;
   if (user && activeChildId) {
@@ -124,7 +129,7 @@ export default async function VideoPage({
                 <Link
                   href={'/home' as Route}
                   className="absolute left-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60"
-                  aria-label="Назад"
+                  aria-label={translate(locale, 'quiz.back')}
                 >
                   <ArrowLeft className="h-6 w-6" />
                 </Link>
@@ -133,8 +138,8 @@ export default async function VideoPage({
               <div className="rounded-[22px] border border-border bg-card p-4 shadow-card lg:p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1">
-                    <h1 className="text-[38px] font-bold leading-tight text-primary lg:text-[44px]">{video.title}</h1>
-                    <p className="text-[20px] text-primary/90">{video.category}</p>
+                    <h1 className="text-[38px] font-bold leading-tight text-primary lg:text-[44px]">{localizedVideo.title}</h1>
+                    <p className="text-[20px] text-primary/90">{localizedVideo.category}</p>
                     <p className="text-[18px] text-primary/80">{formatViews(video.viewsCount)}</p>
                   </div>
                   <VideoActions videoId={video.id} videoSlug={video.slug} initialIsFavorite={isFavorite} />
@@ -146,26 +151,26 @@ export default async function VideoPage({
                       <ScrollText className="h-6 w-6" />
                     </div>
                     <div>
-                      <p className="text-[30px] font-bold leading-none text-primary lg:text-[34px]">Пройди тест по видео!</p>
-                      <p className="mt-1 text-[19px] text-primary/85">Проверь свои знания</p>
+                      <p className="text-[30px] font-bold leading-none text-primary lg:text-[34px]">{translate(locale, 'video.quizCtaTitle')}</p>
+                      <p className="mt-1 text-[19px] text-primary/85">{translate(locale, 'video.quizCtaSubtitle')}</p>
                     </div>
                   </div>
                   <Link
                     href={`/video/${video.slug}/quiz` as Route}
                     className="mt-4 flex h-14 w-full items-center justify-center rounded-[18px] bg-primary text-[30px] font-bold text-white transition hover:brightness-110"
                   >
-                    Начать тест
+                    {translate(locale, 'video.quizCtaButton')}
                   </Link>
                 </article>
 
-                <p className="mt-4 text-[20px] leading-relaxed text-primary/90">{video.description}</p>
+                <p className="mt-4 text-[20px] leading-relaxed text-primary/90">{localizedVideo.description}</p>
               </div>
             </div>
 
             <aside className="mt-5 space-y-3 lg:mt-0">
-              <h2 className="text-[34px] font-bold text-primary lg:text-[30px]">Похожие видео</h2>
-              {similar.length ? (
-                similar.map((item) => (
+              <h2 className="text-[34px] font-bold text-primary lg:text-[30px]">{translate(locale, 'video.similarTitle')}</h2>
+              {localizedSimilar.length ? (
+                localizedSimilar.map((item) => (
                   <Link
                     key={item.id}
                     href={`/video/${item.slug}` as Route}
@@ -188,7 +193,7 @@ export default async function VideoPage({
                 ))
               ) : (
                 <div className="rounded-[18px] border border-border bg-card p-4 text-[16px] text-primary/80 shadow-card">
-                  Пока похожих видео нет.
+                  {translate(locale, 'video.similarEmpty')}
                 </div>
               )}
             </aside>
