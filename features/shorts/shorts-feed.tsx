@@ -1,26 +1,42 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Loader2, Volume2, VolumeX } from 'lucide-react';
-import type { ShortsItem, ShortsResponse } from '@/types/shorts';
-import { localizeVideoList } from '@/lib/content-localization';
-import { formatDuration, formatViews } from '@/lib/video-format';
 import { useLocale } from '@/components/i18n/locale-provider';
+import { localizeVideoList } from '@/lib/content-localization';
 import { translate } from '@/lib/i18n/messages';
+import { formatDuration, formatViews } from '@/lib/video-format';
+import type { ShortsItem, ShortsResponse } from '@/types/shorts';
 
 const PAGE_SIZE = 5;
 
-async function fetchShorts(cursor?: string) {
+type CategoryItem = {
+  name: string;
+  count: number;
+};
+
+async function fetchShorts(category?: string, cursor?: string) {
   const params = new URLSearchParams({ take: String(PAGE_SIZE) });
+
   if (cursor) params.set('cursor', cursor);
+  if (category) params.set('category', category);
 
   const response = await fetch(`/api/shorts?${params.toString()}`, { cache: 'no-store' });
   if (!response.ok) {
-    throw new Error('Не удалось загрузить shorts');
+    throw new Error('Failed to load shorts');
   }
 
   return (await response.json()) as ShortsResponse;
+}
+
+async function fetchShortCategories() {
+  const response = await fetch('/api/videos/categories?contentType=SHORT', { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error('Failed to load short categories');
+  }
+
+  return (await response.json()) as CategoryItem[];
 }
 
 function ShortCard({
@@ -79,7 +95,7 @@ function ShortCard({
             type="button"
             onClick={onToggleMuted}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white transition hover:bg-black/60"
-            aria-label={muted ? 'Включить звук' : 'Выключить звук'}
+            aria-label={muted ? translate(locale, 'shorts.unmute') : translate(locale, 'shorts.mute')}
           >
             {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
           </button>
@@ -104,21 +120,35 @@ export function ShortsFeed() {
   const locale = useLocale();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [muted, setMuted] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const containerRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const sentViewRef = useRef<Set<string>>(new Set());
 
+  const categoriesQuery = useQuery({
+    queryKey: ['shorts-categories'],
+    queryFn: fetchShortCategories
+  });
+
   const query = useInfiniteQuery({
-    queryKey: ['shorts-feed'],
-    queryFn: ({ pageParam }) => fetchShorts(pageParam || undefined),
+    queryKey: ['shorts-feed', selectedCategory],
+    queryFn: ({ pageParam }) => fetchShorts(selectedCategory || undefined, pageParam || undefined),
     initialPageParam: '',
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined
   });
 
   const rawItems = useMemo(() => query.data?.pages.flatMap((page) => page.items) ?? [], [query.data]);
   const items = useMemo(() => localizeVideoList(rawItems, locale), [rawItems, locale]);
+  const categories = categoriesQuery.data ?? [];
+
+  useEffect(() => {
+    setActiveId(null);
+    if (scrollerRef.current) {
+      scrollerRef.current.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [selectedCategory]);
 
   useEffect(() => {
     if (!items.length || activeId) return;
@@ -190,10 +220,12 @@ export function ShortsFeed() {
     if (!activeId) return;
     const activeItem = items.find((item) => item.id === activeId);
     if (!activeItem) return;
-    if (sentViewRef.current.has(activeItem.slug)) return;
+
+    const viewKey = `${selectedCategory}:${activeItem.slug}`;
+    if (sentViewRef.current.has(viewKey)) return;
 
     const timer = window.setTimeout(() => {
-      sentViewRef.current.add(activeItem.slug);
+      sentViewRef.current.add(viewKey);
       void fetch(`/api/shorts/${activeItem.slug}/view`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -203,59 +235,90 @@ export function ShortsFeed() {
     }, 2000);
 
     return () => window.clearTimeout(timer);
-  }, [activeId, items]);
-
-  if (query.isLoading) {
-    return (
-      <div className="grid place-items-center rounded-[22px] border border-border bg-card px-4 py-16 text-primary shadow-card">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (query.isError) {
-    return (
-      <div className="rounded-[22px] border border-border bg-card p-5 text-[16px] text-primary/80 shadow-card">
-        Не удалось загрузить shorts. Попробуйте обновить страницу.
-      </div>
-    );
-  }
-
-  if (!items.length) {
-    return (
-      <div className="rounded-[22px] border border-border bg-card p-5 text-[16px] text-primary/80 shadow-card">
-        {translate(locale, 'shorts.empty')}
-      </div>
-    );
-  }
+  }, [activeId, items, selectedCategory]);
 
   return (
-    <div
-      ref={scrollerRef}
-      className="h-full space-y-4 overflow-y-auto overscroll-y-contain snap-y snap-mandatory scroll-smooth lg:mx-auto lg:max-w-[560px]"
-    >
-      {items.map((item) => (
-        <ShortCard
-          key={item.id}
-          item={item}
-          isActive={item.id === activeId}
-          muted={muted}
-          onToggleMuted={() => setMuted((prev) => !prev)}
-          videoRef={(node) => {
-            videoRefs.current[item.id] = node;
-          }}
-          containerRef={(node) => {
-            containerRefs.current[item.id] = node;
-          }}
-          locale={locale}
-        />
-      ))}
+    <div className="flex h-full min-h-0 flex-col gap-4">
+      <section className="rounded-[22px] border border-border bg-card p-3 shadow-card">
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          <button
+            type="button"
+            onClick={() => setSelectedCategory('')}
+            className={`shrink-0 rounded-full px-4 py-2 text-[14px] font-semibold transition ${
+              selectedCategory === ''
+                ? 'bg-primary text-white'
+                : 'bg-secondary text-secondary-foreground hover:bg-accent'
+            }`}
+          >
+            {translate(locale, 'home.allCategories')}
+          </button>
 
-      {query.isFetchingNextPage ? (
-        <div className="flex items-center justify-center py-3 text-primary/70">
-          <Loader2 className="h-5 w-5 animate-spin" />
+          {categories.map((category) => {
+            const isActive = selectedCategory === category.name;
+
+            return (
+              <button
+                key={category.name}
+                type="button"
+                onClick={() => setSelectedCategory(category.name)}
+                className={`shrink-0 rounded-full px-4 py-2 text-[14px] font-semibold transition ${
+                  isActive ? 'bg-primary text-white' : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                }`}
+              >
+                {category.name}
+              </button>
+            );
+          })}
+
+          {categoriesQuery.isLoading ? (
+            <span className="inline-flex h-[40px] items-center rounded-full bg-secondary px-4 text-[14px] text-primary/70">
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </span>
+          ) : null}
         </div>
-      ) : null}
+      </section>
+
+      {query.isLoading ? (
+        <div className="grid flex-1 place-items-center rounded-[22px] border border-border bg-card px-4 py-16 text-primary shadow-card">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : query.isError ? (
+        <div className="rounded-[22px] border border-border bg-card p-5 text-[16px] text-primary/80 shadow-card">
+          {translate(locale, 'shorts.loadError')}
+        </div>
+      ) : !items.length ? (
+        <div className="rounded-[22px] border border-border bg-card p-5 text-[16px] text-primary/80 shadow-card">
+          {translate(locale, 'shorts.empty')}
+        </div>
+      ) : (
+        <div
+          ref={scrollerRef}
+          className="flex-1 space-y-4 overflow-y-auto overscroll-y-contain snap-y snap-mandatory scroll-smooth lg:mx-auto lg:max-w-[560px]"
+        >
+          {items.map((item) => (
+            <ShortCard
+              key={item.id}
+              item={item}
+              isActive={item.id === activeId}
+              muted={muted}
+              onToggleMuted={() => setMuted((prev) => !prev)}
+              videoRef={(node) => {
+                videoRefs.current[item.id] = node;
+              }}
+              containerRef={(node) => {
+                containerRefs.current[item.id] = node;
+              }}
+              locale={locale}
+            />
+          ))}
+
+          {query.isFetchingNextPage ? (
+            <div className="flex items-center justify-center py-3 text-primary/70">
+              <Loader2 className="h-5 w-5 animate-spin" />
+            </div>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }
