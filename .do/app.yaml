@@ -1,0 +1,55 @@
+name: bilimtube
+region: fra
+services:
+  - name: web
+    git:
+      repo_clone_url: https://github.com/FullStraing/BilimTube.git
+      branch: main
+    source_dir: /
+    dockerfile_path: Dockerfile
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: NODE_ENV
+        value: production
+        scope: RUN_AND_BUILD_TIME
+      - key: APP_URL
+        value: ${APP_URL}
+        scope: RUN_AND_BUILD_TIME
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: ${NEXT_PUBLIC_API_BASE_URL}
+        scope: RUN_AND_BUILD_TIME
+      - key: GOOGLE_CLIENT_ID
+        value: ${GOOGLE_CLIENT_ID}
+        scope: RUN_TIME
+        type: SECRET
+      - key: GOOGLE_CLIENT_SECRET
+        value: ${GOOGLE_CLIENT_SECRET}
+        scope: RUN_TIME
+        type: SECRET
+      - key: GOOGLE_REDIRECT_URI
+        value: ${GOOGLE_REDIRECT_URI}
+        scope: RUN_TIME
+      - key: DATABASE_URL
+        value: ${DATABASE_URL}
+        scope: RUN_TIME
+        type: SECRET
+      - key: R2_ACCOUNT_ID
+        value: ${R2_ACCOUNT_ID}
+        scope: RUN_TIME
+        type: SECRET
+      - key: R2_ACCESS_KEY_ID
+        value: ${R2_ACCESS_KEY_ID}
+        scope: RUN_TIME
+        type: SECRET
+      - key: R2_SECRET_ACCESS_KEY
+        value: ${R2_SECRET_ACCESS_KEY}
+        scope: RUN_TIME
+        type: SECRET
+      - key: R2_BUCKET_NAME
+        value: ${R2_BUCKET_NAME}
+        scope: RUN_TIME
+      - key: R2_PUBLIC_BASE_URL
+        value: ${R2_PUBLIC_BASE_URL}
+        scope: RUN_TIME
