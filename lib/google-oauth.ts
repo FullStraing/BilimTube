@@ -20,6 +20,15 @@ const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
 
+function isLocalhostUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  } catch {
+    return false;
+  }
+}
+
 function getRequiredEnv(name: 'GOOGLE_CLIENT_ID' | 'GOOGLE_CLIENT_SECRET') {
   const value = process.env[name];
   if (!value) {
@@ -33,13 +42,34 @@ export function createGoogleOauthState() {
 }
 
 export function resolveAppBaseUrl(req: Request) {
-  if (process.env.APP_URL) return process.env.APP_URL;
   const url = new URL(req.url);
-  return `${url.protocol}//${url.host}`;
+  const requestBaseUrl = `${url.protocol}//${url.host}`;
+  const appUrl = process.env.APP_URL;
+
+  if (!appUrl) {
+    return requestBaseUrl;
+  }
+
+  if (process.env.NODE_ENV === 'production' && isLocalhostUrl(appUrl)) {
+    return requestBaseUrl;
+  }
+
+  return appUrl;
 }
 
 export function getGoogleRedirectUri(req: Request) {
-  return process.env.GOOGLE_REDIRECT_URI ?? `${resolveAppBaseUrl(req)}/api/auth/google/callback`;
+  const fallbackRedirectUri = `${resolveAppBaseUrl(req)}/api/auth/google/callback`;
+  const configuredRedirectUri = process.env.GOOGLE_REDIRECT_URI;
+
+  if (!configuredRedirectUri) {
+    return fallbackRedirectUri;
+  }
+
+  if (process.env.NODE_ENV === 'production' && isLocalhostUrl(configuredRedirectUri)) {
+    return fallbackRedirectUri;
+  }
+
+  return configuredRedirectUri;
 }
 
 export function buildGoogleAuthUrl(req: Request, state: string) {
