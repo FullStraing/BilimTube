@@ -35,7 +35,7 @@ export default async function ShortsPage() {
       <main className="space-y-4 px-4 py-4 pt-[88px] sm:px-5 lg:px-6">
         <MainNavigation active="shorts" />
 
-        <section className="h-[calc(100dvh-88px-86px)] lg:ml-[220px] lg:h-[calc(100vh-108px)]">
+        <section className="h-[calc(100dvh-88px-86px)] min-h-0 lg:ml-[220px] lg:h-[calc(100vh-108px)]">
           <ShortsFeed />
         </section>
       </main>

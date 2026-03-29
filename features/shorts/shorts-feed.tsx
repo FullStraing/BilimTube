@@ -61,8 +61,15 @@ function ShortCard({
   return (
     <article
       ref={containerRef}
-      className="relative h-full min-h-0 snap-start snap-always overflow-hidden rounded-[24px] border border-border bg-card shadow-card"
+      className="relative h-full min-h-0 overflow-hidden rounded-[24px] border border-border bg-card shadow-card"
     >
+      <div
+        className="absolute inset-0 scale-110 bg-cover bg-center blur-2xl"
+        style={{ backgroundImage: `url(${item.thumbnailUrl})` }}
+        aria-hidden="true"
+      />
+      <div className="absolute inset-0 bg-black/28" aria-hidden="true" />
+
       <video
         ref={videoRef}
         src={item.videoUrl}
@@ -71,10 +78,10 @@ function ShortCard({
         loop
         preload="metadata"
         muted={muted}
-        className="h-full w-full object-cover"
+        className="relative z-[1] h-full w-full object-contain"
       />
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-4 text-white">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] bg-gradient-to-t from-black/80 via-black/35 to-transparent p-4 text-white">
         <div className="mb-3 flex items-end justify-between gap-3">
           <div className="max-w-[78%]">
             <h2 className="line-clamp-2 text-[24px] font-bold leading-tight">{item.title}</h2>
@@ -121,7 +128,7 @@ function ShortCard({
 export function ShortsFeed() {
   const locale = useLocale();
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -272,112 +279,106 @@ export function ShortsFeed() {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
-      <section className="rounded-[22px] border border-border bg-card px-4 py-3 shadow-card">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[14px] font-semibold text-primary/65">{translate(locale, 'categories.title')}</p>
-            <p className="truncate text-[16px] font-semibold text-primary">{selectedLabel}</p>
-          </div>
+    <div className="relative h-full min-h-0">
+      <div className="pointer-events-none absolute right-0 top-0 z-20 flex w-full justify-end p-2 sm:p-3">
+        <div ref={menuRef} className="relative shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            className="pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card/95 px-4 text-[14px] font-semibold text-primary shadow-card backdrop-blur-sm transition hover:bg-secondary"
+          >
+            <span className="max-w-[150px] truncate">{selectedLabel}</span>
+            <ChevronDown className={`h-4 w-4 transition ${isMenuOpen ? 'rotate-180' : ''}`} />
+          </button>
 
-          <div ref={menuRef} className="relative shrink-0">
-            <button
-              type="button"
-              onClick={() => setIsMenuOpen((prev) => !prev)}
-              className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-[14px] font-semibold text-primary shadow-sm transition hover:bg-secondary"
-            >
-              <span className="max-w-[150px] truncate">{selectedLabel}</span>
-              <ChevronDown className={`h-4 w-4 transition ${isMenuOpen ? 'rotate-180' : ''}`} />
-            </button>
+          {isMenuOpen ? (
+            <div className="pointer-events-auto absolute right-0 top-[calc(100%+10px)] z-30 w-[280px] rounded-[20px] border border-border bg-card p-3 shadow-[0_20px_50px_rgba(15,78,107,0.18)]">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-[14px] font-semibold text-primary">{translate(locale, 'home.allCategories')}</p>
+                {normalizedSelectedCategories.length ? (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategories([])}
+                    className="inline-flex items-center gap-1 text-[12px] font-semibold text-primary/70 transition hover:text-primary"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    {translate(locale, 'shorts.clearFilters')}
+                  </button>
+                ) : null}
+              </div>
 
-            {isMenuOpen ? (
-              <div className="absolute right-0 top-[calc(100%+10px)] z-30 w-[280px] rounded-[20px] border border-border bg-card p-3 shadow-[0_20px_50px_rgba(15,78,107,0.18)]">
-                <div className="mb-2 flex items-center justify-between">
-                  <p className="text-[14px] font-semibold text-primary">{translate(locale, 'home.allCategories')}</p>
-                  {normalizedSelectedCategories.length ? (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedCategories([])}
-                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-primary/70 transition hover:text-primary"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                      {translate(locale, 'shorts.clearFilters')}
-                    </button>
-                  ) : null}
-                </div>
+              <div className="no-scrollbar max-h-[280px] space-y-1 overflow-y-auto pr-1">
+                {categoriesQuery.isLoading ? (
+                  <div className="flex items-center justify-center py-6 text-primary/70">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  </div>
+                ) : (
+                  categories.map((category) => {
+                    const checked = normalizedSelectedCategories.includes(category.name);
 
-                <div className="no-scrollbar max-h-[280px] space-y-1 overflow-y-auto pr-1">
-                  {categoriesQuery.isLoading ? (
-                    <div className="flex items-center justify-center py-6 text-primary/70">
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    </div>
-                  ) : (
-                    categories.map((category) => {
-                      const checked = normalizedSelectedCategories.includes(category.name);
-
-                      return (
-                        <button
-                          key={category.name}
-                          type="button"
-                          onClick={() => toggleCategory(category.name)}
-                          className={`flex w-full items-center justify-between rounded-[14px] px-3 py-2.5 text-left transition ${
-                            checked ? 'bg-primary text-white' : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                    return (
+                      <button
+                        key={category.name}
+                        type="button"
+                        onClick={() => toggleCategory(category.name)}
+                        className={`flex w-full items-center justify-between rounded-[14px] px-3 py-2.5 text-left transition ${
+                          checked ? 'bg-primary text-white' : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                        }`}
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-[14px] font-semibold">{category.name}</p>
+                          <p className={`text-[12px] ${checked ? 'text-white/75' : 'text-primary/65'}`}>{category.count}</p>
+                        </div>
+                        <span
+                          className={`ml-3 inline-flex h-5 w-5 items-center justify-center rounded-full ${
+                            checked ? 'bg-white/18 text-white' : 'border border-primary/15 bg-white text-transparent'
                           }`}
                         >
-                          <div className="min-w-0">
-                            <p className="truncate text-[14px] font-semibold">{category.name}</p>
-                            <p className={`text-[12px] ${checked ? 'text-white/75' : 'text-primary/65'}`}>{category.count}</p>
-                          </div>
-                          <span
-                            className={`ml-3 inline-flex h-5 w-5 items-center justify-center rounded-full ${
-                              checked ? 'bg-white/18 text-white' : 'border border-primary/15 bg-white text-transparent'
-                            }`}
-                          >
-                            <Check className="h-3.5 w-3.5" />
-                          </span>
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
+                          <Check className="h-3.5 w-3.5" />
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
               </div>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </div>
-      </section>
+      </div>
 
       {query.isLoading ? (
-        <div className="grid flex-1 place-items-center rounded-[22px] border border-border bg-card px-4 py-16 text-primary shadow-card">
+        <div className="grid h-full place-items-center rounded-[22px] border border-border bg-card px-4 py-16 text-primary shadow-card">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       ) : query.isError ? (
-        <div className="rounded-[22px] border border-border bg-card p-5 text-[16px] text-primary/80 shadow-card">
+        <div className="grid h-full place-items-center rounded-[22px] border border-border bg-card p-5 text-[16px] text-primary/80 shadow-card">
           {translate(locale, 'shorts.loadError')}
         </div>
       ) : !items.length ? (
-        <div className="rounded-[22px] border border-border bg-card p-5 text-[16px] text-primary/80 shadow-card">
+        <div className="grid h-full place-items-center rounded-[22px] border border-border bg-card p-5 text-[16px] text-primary/80 shadow-card">
           {translate(locale, 'shorts.empty')}
         </div>
       ) : (
         <div
           ref={scrollerRef}
-          className="flex-1 space-y-4 overflow-y-auto overscroll-y-contain snap-y snap-mandatory scroll-smooth lg:mx-auto lg:max-w-[560px]"
+          className="h-full overflow-y-auto overscroll-y-contain snap-y snap-mandatory scroll-smooth lg:mx-auto lg:max-w-[560px]"
         >
           {items.map((item) => (
-            <ShortCard
-              key={item.id}
-              item={item}
-              isActive={item.id === activeId}
-              muted={muted}
-              onToggleMuted={() => setMuted((prev) => !prev)}
-              videoRef={(node) => {
-                videoRefs.current[item.id] = node;
-              }}
-              containerRef={(node) => {
-                containerRefs.current[item.id] = node;
-              }}
-              locale={locale}
-            />
+            <div key={item.id} className="h-full snap-start snap-always pb-4 last:pb-0">
+              <ShortCard
+                item={item}
+                isActive={item.id === activeId}
+                muted={muted}
+                onToggleMuted={() => setMuted((prev) => !prev)}
+                videoRef={(node) => {
+                  videoRefs.current[item.id] = node;
+                }}
+                containerRef={(node) => {
+                  containerRefs.current[item.id] = node;
+                }}
+                locale={locale}
+              />
+            </div>
           ))}
 
           {query.isFetchingNextPage ? (
