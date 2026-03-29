@@ -7,6 +7,8 @@ import { useLocale } from '@/components/i18n/locale-provider';
 import { localizeVideoList } from '@/lib/content-localization';
 import { translate } from '@/lib/i18n/messages';
 import { formatDuration, formatViews } from '@/lib/video-format';
+import { insertGamesIntoShorts } from '@/features/shorts/games/data';
+import { GameShortCard } from '@/features/shorts/games/game-short-card';
 import type { ShortsItem, ShortsResponse } from '@/types/shorts';
 
 const PAGE_SIZE = 5;
@@ -152,6 +154,7 @@ export function ShortsFeed() {
 
   const rawItems = useMemo(() => query.data?.pages.flatMap((page) => page.items) ?? [], [query.data]);
   const items = useMemo(() => localizeVideoList(rawItems, locale), [rawItems, locale]);
+  const feedItems = useMemo(() => insertGamesIntoShorts(items), [items]);
   const categories = categoriesQuery.data ?? [];
   const normalizedSelectedCategories = useMemo(() => [...selectedCategories].sort(), [selectedCategories]);
 
@@ -186,12 +189,13 @@ export function ShortsFeed() {
   }, [normalizedSelectedCategories]);
 
   useEffect(() => {
-    if (!items.length || activeId) return;
-    setActiveId(items[0].id);
-  }, [items, activeId]);
+    if (!feedItems.length || activeId) return;
+    const firstEntry = feedItems[0];
+    setActiveId('kind' in firstEntry ? firstEntry.id : firstEntry.id);
+  }, [feedItems, activeId]);
 
   useEffect(() => {
-    if (!items.length) return;
+    if (!feedItems.length) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -216,15 +220,16 @@ export function ShortsFeed() {
       }
     );
 
-    for (const item of items) {
-      const node = containerRefs.current[item.id];
+    for (const item of feedItems) {
+      const entryId = 'kind' in item ? item.id : item.id;
+      const node = containerRefs.current[entryId];
       if (!node) continue;
-      node.dataset.shortId = item.id;
+      node.dataset.shortId = entryId;
       observer.observe(node);
     }
 
     return () => observer.disconnect();
-  }, [items]);
+  }, [feedItems]);
 
   useEffect(() => {
     for (const item of items) {
@@ -241,15 +246,15 @@ export function ShortsFeed() {
   }, [activeId, items, muted]);
 
   useEffect(() => {
-    if (!activeId || !items.length) return;
+    if (!activeId || !feedItems.length) return;
 
-    const activeIndex = items.findIndex((item) => item.id === activeId);
+    const activeIndex = feedItems.findIndex((item) => item.id === activeId);
     if (activeIndex < 0) return;
 
-    if (activeIndex >= items.length - 2 && query.hasNextPage && !query.isFetchingNextPage) {
+    if (activeIndex >= feedItems.length - 3 && query.hasNextPage && !query.isFetchingNextPage) {
       void query.fetchNextPage();
     }
-  }, [activeId, items, query]);
+  }, [activeId, feedItems, query]);
 
   useEffect(() => {
     if (!activeId) return;
@@ -276,6 +281,17 @@ export function ShortsFeed() {
     setSelectedCategories((current) =>
       current.includes(categoryName) ? current.filter((item) => item !== categoryName) : [...current, categoryName]
     );
+  };
+
+  const advanceFromGame = (gameId: string) => {
+    const currentIndex = feedItems.findIndex((item) => item.id === gameId);
+    if (currentIndex < 0) return;
+
+    const nextEntry = feedItems[currentIndex + 1];
+    if (!nextEntry) return;
+
+    setActiveId(nextEntry.id);
+    containerRefs.current[nextEntry.id]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
@@ -363,21 +379,32 @@ export function ShortsFeed() {
           ref={scrollerRef}
           className="h-full overflow-y-auto overscroll-y-contain snap-y snap-mandatory scroll-smooth lg:mx-auto lg:max-w-[560px]"
         >
-          {items.map((item) => (
+          {feedItems.map((item) => (
             <div key={item.id} className="h-full snap-start snap-always pb-4 last:pb-0">
-              <ShortCard
-                item={item}
-                isActive={item.id === activeId}
-                muted={muted}
-                onToggleMuted={() => setMuted((prev) => !prev)}
-                videoRef={(node) => {
-                  videoRefs.current[item.id] = node;
-                }}
-                containerRef={(node) => {
-                  containerRefs.current[item.id] = node;
-                }}
-                locale={locale}
-              />
+              {'kind' in item ? (
+                <div
+                  ref={(node) => {
+                    containerRefs.current[item.id] = node;
+                  }}
+                  className="h-full"
+                >
+                  <GameShortCard game={item.game} locale={locale} isActive={item.id === activeId} onAdvance={() => advanceFromGame(item.id)} />
+                </div>
+              ) : (
+                <ShortCard
+                  item={item}
+                  isActive={item.id === activeId}
+                  muted={muted}
+                  onToggleMuted={() => setMuted((prev) => !prev)}
+                  videoRef={(node) => {
+                    videoRefs.current[item.id] = node;
+                  }}
+                  containerRef={(node) => {
+                    containerRefs.current[item.id] = node;
+                  }}
+                  locale={locale}
+                />
+              )}
             </div>
           ))}
 

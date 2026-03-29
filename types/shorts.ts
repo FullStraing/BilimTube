@@ -16,3 +16,7 @@ export type ShortsResponse = {
   items: ShortsItem[];
   nextCursor: string | null;
 };
+
+export function isShortsItem(value: ShortsItem | { kind?: string }): value is ShortsItem {
+  return !('kind' in value);
+}
