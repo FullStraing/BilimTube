@@ -1,11 +1,33 @@
-﻿import { cookies } from 'next/headers';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
+import { prisma, hasLocalDatabaseInProduction } from '@/lib/prisma';
 import { createSessionExpiry, createSessionToken, setSessionCookie } from '@/lib/auth';
 import { exchangeGoogleCode, fetchGoogleUserInfo } from '@/lib/google-oauth';
 import { setLocaleCookie } from '@/lib/i18n/server';
 
 const GOOGLE_STATE_COOKIE = 'google_oauth_state';
+
+function getOauthErrorCode(error: unknown) {
+  if (hasLocalDatabaseInProduction()) {
+    return 'db_unavailable';
+  }
+
+  if (error instanceof Prisma.PrismaClientInitializationError) {
+    return 'db_unavailable';
+  }
+
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return 'db_unavailable';
+  }
+
+  const message = error instanceof Error ? error.message : String(error);
+  if (/connect|database|postgres|prisma|localhost|127\.0\.0\.1/i.test(message)) {
+    return 'db_unavailable';
+  }
+
+  return 'failed';
+}
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -32,6 +54,10 @@ export async function GET(req: Request) {
   }
 
   try {
+    if (hasLocalDatabaseInProduction()) {
+      throw new Error('Production DATABASE_URL points to localhost');
+    }
+
     const token = await exchangeGoogleCode(req, code);
     const profile = await fetchGoogleUserInfo(token.access_token);
 
@@ -88,8 +114,8 @@ export async function GET(req: Request) {
     const destination = isNewUser || childrenCount === 0 ? '/child/create' : '/home';
 
     return NextResponse.redirect(new URL(destination, req.url));
-  } catch {
-    return NextResponse.redirect(new URL('/auth/login?oauth=failed', req.url));
+  } catch (error) {
+    console.error('Google OAuth callback failed', error);
+    return NextResponse.redirect(new URL(`/auth/login?oauth=${getOauthErrorCode(error)}`, req.url));
   }
 }
-

@@ -1,11 +1,16 @@
-﻿import { cookies } from 'next/headers';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { buildGoogleAuthUrl, createGoogleOauthState } from '@/lib/google-oauth';
+import { hasLocalDatabaseInProduction } from '@/lib/prisma';
 
 const GOOGLE_STATE_COOKIE = 'google_oauth_state';
 
 export async function GET(req: Request) {
   try {
+    if (hasLocalDatabaseInProduction()) {
+      return NextResponse.redirect(new URL('/auth/login?oauth=db_unavailable', req.url));
+    }
+
     const url = new URL(req.url);
     const mode = url.searchParams.get('mode') === 'register' ? 'register' : 'login';
     const nonce = createGoogleOauthState();
@@ -25,4 +30,3 @@ export async function GET(req: Request) {
     return NextResponse.redirect(new URL('/auth/login?oauth=google_unavailable', req.url));
   }
 }
-
