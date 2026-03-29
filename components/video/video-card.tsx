@@ -14,7 +14,7 @@ export function VideoCard({ video }: Props) {
   return (
     <Link
       href={`/video/${video.slug}` as Route}
-      className="group block w-full max-w-[380px] overflow-hidden rounded-[24px] border border-border bg-card shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(15,78,107,0.14)]"
+      className="group block h-full w-full overflow-hidden rounded-[24px] border border-border bg-card shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(15,78,107,0.14)]"
     >
       <div className="relative aspect-[16/10] w-full bg-muted">
         <Image

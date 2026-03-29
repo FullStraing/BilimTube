@@ -16,6 +16,7 @@ type CategoryItem = {
 
 const AGE_OPTIONS = ['all', '4-6', '7-9', '10-13'] as const;
 const skeletonItems = [1, 2, 3, 4];
+const cardGridClassName = 'grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 xl:gap-5';
 
 async function fetchVideos(filters: { q: string; category: string; ageGroup: string }) {
   const params = new URLSearchParams({ limit: '40' });
@@ -107,9 +108,9 @@ export function HomeFeed() {
       </section>
 
       {videoQuery.isLoading ? (
-        <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+        <div className={cardGridClassName}>
           {skeletonItems.map((item) => (
-            <div key={item} className="overflow-hidden rounded-[22px] border border-border bg-card shadow-card">
+            <div key={item} className="overflow-hidden rounded-[24px] border border-border bg-card shadow-card">
               <div className="aspect-video w-full animate-pulse bg-gradient-to-r from-[#92c8eb] via-[#7db5db] to-[#92c8eb]" />
               <div className="space-y-2 p-4">
                 <div className="h-7 w-4/5 animate-pulse rounded-md bg-[#E2E8EE]" />
@@ -128,7 +129,7 @@ export function HomeFeed() {
           {translate(locale, 'home.feedEmpty')}
         </div>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+        <div className={cardGridClassName}>
           {localizedVideos.map((video) => (
             <VideoCard key={video.id} video={video} />
           ))}

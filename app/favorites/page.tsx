@@ -64,7 +64,7 @@ export default async function FavoritesPage() {
               {translate(locale, 'favorites.loginRequired')}
             </div>
           ) : favorites.length ? (
-            <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 xl:gap-5">
               {favorites.map((item) => (
                 <VideoCard key={item.id} video={item.video} />
               ))}
