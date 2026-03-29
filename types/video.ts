@@ -4,6 +4,7 @@ export type VideoListItem = {
   title: string;
   description: string;
   category: string;
+  language?: 'ru' | 'en' | 'ky';
   ageGroup: string;
   thumbnailUrl: string;
   durationSec: number;

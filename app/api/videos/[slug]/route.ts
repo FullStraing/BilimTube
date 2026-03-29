@@ -22,6 +22,7 @@ export async function GET(
       title: true,
       description: true,
       category: true,
+      language: true,
       ageGroup: true,
       thumbnailUrl: true,
       videoUrl: true,

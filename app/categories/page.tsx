@@ -19,6 +19,7 @@ import { prisma } from '@/lib/prisma';
 import { MainNavigation } from '@/components/layout/main-navigation';
 import { HeaderProfileLink, PageHeader } from '@/components/layout/page-header';
 import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
+import { buildVideoLanguageWhere } from '@/lib/video-language';
 
 const CATEGORY_PRESET = [
   { name: 'Наука', Icon: Microscope },
@@ -52,7 +53,7 @@ export default async function CategoriesPage() {
   const grouped = await prisma.video.groupBy({
     by: ['category'],
     where: {
-      AND: [{ isPublished: true }, ...policyClauses]
+      AND: [{ isPublished: true }, buildVideoLanguageWhere(locale), ...policyClauses]
     },
     _count: { _all: true }
   });

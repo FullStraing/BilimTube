@@ -3,6 +3,8 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { getLocaleFromCookie } from '@/lib/i18n/server';
+import { buildVideoLanguageWhere } from '@/lib/video-language';
 
 const DEFAULT_TAKE = 5;
 const MAX_TAKE = 12;
@@ -11,13 +13,14 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const cursor = url.searchParams.get('cursor')?.trim() || undefined;
   const take = Math.min(Math.max(Number(url.searchParams.get('take') ?? DEFAULT_TAKE), 1), MAX_TAKE);
+  const locale = await getLocaleFromCookie();
 
   const user = await getCurrentUserFromSession();
   const policy = user ? await getActiveChildPolicy(user.id) : null;
   const policyClauses = buildVideoPolicyClauses(policy);
 
   const where: Prisma.VideoWhereInput = {
-    AND: [{ isPublished: true, contentType: 'SHORT' }, ...policyClauses]
+    AND: [{ isPublished: true, contentType: 'SHORT' }, buildVideoLanguageWhere(locale), ...policyClauses]
   };
 
   const shorts = await prisma.video.findMany({

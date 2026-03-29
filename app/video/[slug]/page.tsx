@@ -47,6 +47,7 @@ export default async function VideoPage({
       title: true,
       description: true,
       category: true,
+      language: true,
       ageGroup: true,
       thumbnailUrl: true,
       videoUrl: true,
@@ -64,6 +65,7 @@ export default async function VideoPage({
     where: {
       AND: [
         { isPublished: true, id: { not: video.id } },
+        { language: video.language },
         ...policyClauses,
         { OR: [{ category: video.category }, { ageGroup: video.ageGroup }] }
       ]
@@ -76,6 +78,7 @@ export default async function VideoPage({
       title: true,
       description: true,
       category: true,
+      language: true,
       ageGroup: true,
       thumbnailUrl: true,
       durationSec: true,

@@ -3,7 +3,9 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { getLocaleFromCookie } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
+import { buildVideoLanguageWhere } from '@/lib/video-language';
 import { VideoCard } from '@/components/video/video-card';
 
 export default async function SearchPage({
@@ -12,13 +14,14 @@ export default async function SearchPage({
   searchParams: Promise<{ category?: string }>;
 }) {
   const { category } = await searchParams;
+  const locale = await getLocaleFromCookie();
   const user = await getCurrentUserFromSession();
   const policy = user ? await getActiveChildPolicy(user.id) : null;
   const policyClauses = buildVideoPolicyClauses(policy);
 
   const videos = await prisma.video.findMany({
     where: {
-      AND: [{ isPublished: true }, ...policyClauses, ...(category ? [{ category }] : [])]
+      AND: [{ isPublished: true }, buildVideoLanguageWhere(locale), ...policyClauses, ...(category ? [{ category }] : [])]
     },
     orderBy: [{ viewsCount: 'desc' }, { createdAt: 'desc' }],
     select: {

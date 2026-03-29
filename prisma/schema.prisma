@@ -66,6 +66,7 @@ model Video {
   title        String
   description  String
   category     String
+  language     UiLanguage @default(ru)
   ageGroup     String
   thumbnailUrl String
   videoUrl     String
@@ -81,6 +82,7 @@ model Video {
   quiz         Quiz?
 
   @@index([contentType, isPublished, createdAt])
+  @@index([language, contentType, isPublished, createdAt])
 }
 
 model Favorite {

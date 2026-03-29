@@ -3,6 +3,8 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { getLocaleFromCookie } from '@/lib/i18n/server';
+import { buildVideoLanguageWhere } from '@/lib/video-language';
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -10,11 +12,12 @@ export async function GET(req: Request) {
   const q = url.searchParams.get('q')?.trim();
   const category = url.searchParams.get('category')?.trim();
   const ageGroup = url.searchParams.get('ageGroup')?.trim();
+  const locale = await getLocaleFromCookie();
 
   const user = await getCurrentUserFromSession();
   const policy = user ? await getActiveChildPolicy(user.id) : null;
   const policyClauses = buildVideoPolicyClauses(policy);
-  const andClauses: Prisma.VideoWhereInput[] = [{ isPublished: true, contentType: 'LONG' }, ...policyClauses];
+  const andClauses: Prisma.VideoWhereInput[] = [{ isPublished: true, contentType: 'LONG' }, buildVideoLanguageWhere(locale), ...policyClauses];
 
   if (category) andClauses.push({ category });
   if (ageGroup) andClauses.push({ ageGroup });

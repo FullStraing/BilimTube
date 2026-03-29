@@ -6,6 +6,7 @@ import { createQueryClient } from '@/lib/queryClient';
 import { Toaster } from '@/components/ui/toaster';
 import { ToastStateProvider } from '@/components/ui/use-toast';
 import { LocaleProvider } from '@/components/i18n/locale-provider';
+import { CursorTrail } from '@/components/ui/cursor-trail';
 import type { Locale } from '@/lib/i18n/messages';
 
 export function Providers({ children, locale }: { children: React.ReactNode; locale: Locale }) {
@@ -16,6 +17,7 @@ export function Providers({ children, locale }: { children: React.ReactNode; loc
       <QueryClientProvider client={queryClient}>
         <ToastStateProvider>
           {children}
+          <CursorTrail />
           <Toaster />
         </ToastStateProvider>
       </QueryClientProvider>
