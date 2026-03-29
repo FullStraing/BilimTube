@@ -1,4 +1,4 @@
-import type { Prisma, VideoContentType } from '@prisma/client';
+import type { ContentType, Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   const policy = user ? await getActiveChildPolicy(user.id) : null;
   const policyClauses = buildVideoPolicyClauses(policy);
   const contentTypeParam = url.searchParams.get('contentType');
-  const contentType = contentTypeParam === 'SHORT' || contentTypeParam === 'LONG' ? (contentTypeParam as VideoContentType) : null;
+  const contentType = contentTypeParam === 'SHORT' || contentTypeParam === 'LONG' ? (contentTypeParam as ContentType) : null;
 
   const grouped = await prisma.video.groupBy({
     by: ['category'],
