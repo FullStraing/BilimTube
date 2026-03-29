@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { Loader2, Volume2, VolumeX } from 'lucide-react';
+import { Check, ChevronDown, Loader2, Volume2, VolumeX, X } from 'lucide-react';
 import { useLocale } from '@/components/i18n/locale-provider';
 import { localizeVideoList } from '@/lib/content-localization';
 import { translate } from '@/lib/i18n/messages';
@@ -16,11 +16,13 @@ type CategoryItem = {
   count: number;
 };
 
-async function fetchShorts(category?: string, cursor?: string) {
+async function fetchShorts(categories: string[], cursor?: string) {
   const params = new URLSearchParams({ take: String(PAGE_SIZE) });
 
   if (cursor) params.set('cursor', cursor);
-  if (category) params.set('category', category);
+  for (const category of categories) {
+    params.append('category', category);
+  }
 
   const response = await fetch(`/api/shorts?${params.toString()}`, { cache: 'no-store' });
   if (!response.ok) {
@@ -120,12 +122,14 @@ export function ShortsFeed() {
   const locale = useLocale();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [muted, setMuted] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const containerRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const sentViewRef = useRef<Set<string>>(new Set());
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const categoriesQuery = useQuery({
     queryKey: ['shorts-categories'],
@@ -133,8 +137,8 @@ export function ShortsFeed() {
   });
 
   const query = useInfiniteQuery({
-    queryKey: ['shorts-feed', selectedCategory],
-    queryFn: ({ pageParam }) => fetchShorts(selectedCategory || undefined, pageParam || undefined),
+    queryKey: ['shorts-feed', [...selectedCategories].sort()],
+    queryFn: ({ pageParam }) => fetchShorts([...selectedCategories].sort(), pageParam || undefined),
     initialPageParam: '',
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined
   });
@@ -142,13 +146,37 @@ export function ShortsFeed() {
   const rawItems = useMemo(() => query.data?.pages.flatMap((page) => page.items) ?? [], [query.data]);
   const items = useMemo(() => localizeVideoList(rawItems, locale), [rawItems, locale]);
   const categories = categoriesQuery.data ?? [];
+  const normalizedSelectedCategories = useMemo(() => [...selectedCategories].sort(), [selectedCategories]);
+
+  const selectedLabel = useMemo(() => {
+    if (!normalizedSelectedCategories.length) {
+      return translate(locale, 'home.allCategories');
+    }
+
+    if (normalizedSelectedCategories.length === 1) {
+      return normalizedSelectedCategories[0];
+    }
+
+    return `${normalizedSelectedCategories.length} ${translate(locale, 'shorts.categoriesSelected')}`;
+  }, [locale, normalizedSelectedCategories]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('mousedown', handleClickOutside);
+    return () => window.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     setActiveId(null);
     if (scrollerRef.current) {
       scrollerRef.current.scrollTo({ top: 0, behavior: 'auto' });
     }
-  }, [selectedCategory]);
+  }, [normalizedSelectedCategories]);
 
   useEffect(() => {
     if (!items.length || activeId) return;
@@ -221,7 +249,7 @@ export function ShortsFeed() {
     const activeItem = items.find((item) => item.id === activeId);
     if (!activeItem) return;
 
-    const viewKey = `${selectedCategory}:${activeItem.slug}`;
+    const viewKey = `${normalizedSelectedCategories.join('|')}:${activeItem.slug}`;
     if (sentViewRef.current.has(viewKey)) return;
 
     const timer = window.setTimeout(() => {
@@ -235,46 +263,86 @@ export function ShortsFeed() {
     }, 2000);
 
     return () => window.clearTimeout(timer);
-  }, [activeId, items, selectedCategory]);
+  }, [activeId, items, normalizedSelectedCategories]);
+
+  const toggleCategory = (categoryName: string) => {
+    setSelectedCategories((current) =>
+      current.includes(categoryName) ? current.filter((item) => item !== categoryName) : [...current, categoryName]
+    );
+  };
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
-      <section className="rounded-[22px] border border-border bg-card p-3 shadow-card">
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          <button
-            type="button"
-            onClick={() => setSelectedCategory('')}
-            className={`shrink-0 rounded-full px-4 py-2 text-[14px] font-semibold transition ${
-              selectedCategory === ''
-                ? 'bg-primary text-white'
-                : 'bg-secondary text-secondary-foreground hover:bg-accent'
-            }`}
-          >
-            {translate(locale, 'home.allCategories')}
-          </button>
+      <section className="rounded-[22px] border border-border bg-card px-4 py-3 shadow-card">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[14px] font-semibold text-primary/65">{translate(locale, 'categories.title')}</p>
+            <p className="truncate text-[16px] font-semibold text-primary">{selectedLabel}</p>
+          </div>
 
-          {categories.map((category) => {
-            const isActive = selectedCategory === category.name;
+          <div ref={menuRef} className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-[14px] font-semibold text-primary shadow-sm transition hover:bg-secondary"
+            >
+              <span className="max-w-[150px] truncate">{selectedLabel}</span>
+              <ChevronDown className={`h-4 w-4 transition ${isMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
 
-            return (
-              <button
-                key={category.name}
-                type="button"
-                onClick={() => setSelectedCategory(category.name)}
-                className={`shrink-0 rounded-full px-4 py-2 text-[14px] font-semibold transition ${
-                  isActive ? 'bg-primary text-white' : 'bg-secondary text-secondary-foreground hover:bg-accent'
-                }`}
-              >
-                {category.name}
-              </button>
-            );
-          })}
+            {isMenuOpen ? (
+              <div className="absolute right-0 top-[calc(100%+10px)] z-30 w-[280px] rounded-[20px] border border-border bg-card p-3 shadow-[0_20px_50px_rgba(15,78,107,0.18)]">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-[14px] font-semibold text-primary">{translate(locale, 'home.allCategories')}</p>
+                  {normalizedSelectedCategories.length ? (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategories([])}
+                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-primary/70 transition hover:text-primary"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      {translate(locale, 'shorts.clearFilters')}
+                    </button>
+                  ) : null}
+                </div>
 
-          {categoriesQuery.isLoading ? (
-            <span className="inline-flex h-[40px] items-center rounded-full bg-secondary px-4 text-[14px] text-primary/70">
-              <Loader2 className="h-4 w-4 animate-spin" />
-            </span>
-          ) : null}
+                <div className="no-scrollbar max-h-[280px] space-y-1 overflow-y-auto pr-1">
+                  {categoriesQuery.isLoading ? (
+                    <div className="flex items-center justify-center py-6 text-primary/70">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    </div>
+                  ) : (
+                    categories.map((category) => {
+                      const checked = normalizedSelectedCategories.includes(category.name);
+
+                      return (
+                        <button
+                          key={category.name}
+                          type="button"
+                          onClick={() => toggleCategory(category.name)}
+                          className={`flex w-full items-center justify-between rounded-[14px] px-3 py-2.5 text-left transition ${
+                            checked ? 'bg-primary text-white' : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                          }`}
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-[14px] font-semibold">{category.name}</p>
+                            <p className={`text-[12px] ${checked ? 'text-white/75' : 'text-primary/65'}`}>{category.count}</p>
+                          </div>
+                          <span
+                            className={`ml-3 inline-flex h-5 w-5 items-center justify-center rounded-full ${
+                              checked ? 'bg-white/18 text-white' : 'border border-primary/15 bg-white text-transparent'
+                            }`}
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                          </span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
       </section>
 

@@ -12,7 +12,7 @@ const MAX_TAKE = 12;
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const cursor = url.searchParams.get('cursor')?.trim() || undefined;
-  const category = url.searchParams.get('category')?.trim() || undefined;
+  const categories = url.searchParams.getAll('category').map((item) => item.trim()).filter(Boolean);
   const take = Math.min(Math.max(Number(url.searchParams.get('take') ?? DEFAULT_TAKE), 1), MAX_TAKE);
   const locale = await getLocaleFromCookie();
 
@@ -23,7 +23,7 @@ export async function GET(req: Request) {
   const where: Prisma.VideoWhereInput = {
     AND: [
       { isPublished: true, contentType: 'SHORT' },
-      ...(category ? [{ category }] : []),
+      ...(categories.length ? [{ category: { in: categories } }] : []),
       buildVideoLanguageWhere(locale),
       ...policyClauses
     ]
