@@ -9,6 +9,7 @@ export type VideoListItem = {
   thumbnailUrl: string;
   durationSec: number;
   viewsCount: number;
+  contentType?: 'LONG' | 'SHORT';
   isFavorite?: boolean;
 };
 

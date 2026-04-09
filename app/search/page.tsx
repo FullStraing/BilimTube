@@ -36,7 +36,8 @@ export default async function SearchPage({
         ageGroup: true,
         thumbnailUrl: true,
         durationSec: true,
-        viewsCount: true
+        viewsCount: true,
+        contentType: true
       }
     }),
     prisma.video.groupBy({
@@ -92,7 +93,7 @@ export default async function SearchPage({
           </section>
 
           {localizedVideos.length ? (
-            <section className="grid justify-center gap-4 sm:gap-5 [grid-template-columns:repeat(auto-fit,minmax(280px,380px))]">
+            <section className="grid justify-center gap-4 sm:gap-5 [grid-template-columns:repeat(auto-fit,minmax(260px,340px))] xl:[grid-template-columns:repeat(auto-fit,minmax(280px,360px))]">
               {localizedVideos.map((video) => (
                 <VideoCard key={video.id} video={video} />
               ))}
