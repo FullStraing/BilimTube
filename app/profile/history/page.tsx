@@ -1,4 +1,4 @@
-import type { Route } from 'next';
+﻿import type { Route } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Clock3, Film, PlaySquare } from 'lucide-react';
@@ -91,10 +91,23 @@ export default async function ProfileHistoryPage() {
                   <div className={`relative shrink-0 overflow-hidden rounded-xl bg-muted ${isShort ? 'h-[124px] w-[88px]' : 'h-[96px] w-[140px]'}`}>
                     {isShort ? (
                       <>
-                        <Image src={item.video.thumbnailUrl} alt="" fill aria-hidden="true" className="object-cover opacity-30 blur-xl scale-110" sizes="96px" />
+                        <Image
+                          src={item.video.thumbnailUrl}
+                          alt=""
+                          fill
+                          aria-hidden="true"
+                          className="object-cover opacity-30 blur-xl scale-110"
+                          sizes="96px"
+                        />
                         <div className="absolute inset-0 p-1.5">
                           <div className="relative h-full w-full overflow-hidden rounded-[10px] bg-black/10">
-                            <Image src={item.video.thumbnailUrl} alt={item.video.title} fill className="object-contain" sizes="96px" />
+                            <Image
+                              src={item.video.thumbnailUrl}
+                              alt={item.video.title}
+                              fill
+                              className="object-contain"
+                              sizes="96px"
+                            />
                           </div>
                         </div>
                       </>
@@ -115,7 +128,7 @@ export default async function ProfileHistoryPage() {
                     <p className="line-clamp-2 text-[20px] font-bold leading-tight text-primary">{item.video.title}</p>
                     <p className="mt-1 text-[16px] text-primary/85">{localizeCategoryName(item.video.category, locale)}</p>
                     <p className="text-[15px] text-primary/75">
-                      {formatDuration(item.video.durationSec)} � {formatViews(item.video.viewsCount, locale)}
+                      {formatDuration(item.video.durationSec)} • {formatViews(item.video.viewsCount, locale)}
                     </p>
                     <p className="mt-1 inline-flex items-center gap-1 text-[14px] text-primary/70">
                       <Clock3 className="h-4 w-4" />

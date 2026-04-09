@@ -126,7 +126,7 @@ export function HomeFeed() {
       ) : (
         <div className={cardGridClassName}>
           {localizedVideos.map((video) => (
-            <VideoCard key={video.id} video={video} />
+            <VideoCard key={video.id} video={video} locale={locale} />
           ))}
         </div>
       )}

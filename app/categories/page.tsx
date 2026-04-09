@@ -23,16 +23,16 @@ import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { buildVideoLanguageWhere } from '@/lib/video-language';
 
 const CATEGORY_PRESET = [
-  { name: '?????', Icon: Microscope },
-  { name: '??????????', Icon: Calculator },
-  { name: '?????', Icon: Languages },
-  { name: '?????????', Icon: Palette },
-  { name: '??????', Icon: Music2 },
-  { name: '?????', Icon: Volleyball },
-  { name: '???????????', Icon: Tv },
-  { name: '????', Icon: Gamepad2 },
-  { name: '??????????', Icon: Sparkles },
-  { name: '???????', Icon: Leaf }
+  { name: 'Наука', Icon: Microscope },
+  { name: 'Математика', Icon: Calculator },
+  { name: 'Языки', Icon: Languages },
+  { name: 'Искусство', Icon: Palette },
+  { name: 'Музыка', Icon: Music2 },
+  { name: 'Спорт', Icon: Volleyball },
+  { name: 'Мультфильмы', Icon: Tv },
+  { name: 'Игры', Icon: Gamepad2 },
+  { name: 'Творчество', Icon: Sparkles },
+  { name: 'Природа', Icon: Leaf }
 ] as const;
 
 export default async function CategoriesPage() {

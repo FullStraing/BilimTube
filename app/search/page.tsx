@@ -96,7 +96,7 @@ export default async function SearchPage({
           {localizedVideos.length ? (
             <section className="grid justify-center gap-4 sm:gap-5 [grid-template-columns:repeat(auto-fit,minmax(260px,340px))] xl:[grid-template-columns:repeat(auto-fit,minmax(280px,360px))]">
               {localizedVideos.map((video) => (
-                <VideoCard key={video.id} video={video} />
+                <VideoCard key={video.id} video={video} locale={locale} />
               ))}
             </section>
           ) : (

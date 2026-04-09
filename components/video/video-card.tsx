@@ -2,18 +2,18 @@ import type { Route } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Clock3 } from 'lucide-react';
+import type { Locale } from '@/lib/i18n/messages';
 import { localizeCategoryName } from '@/lib/categories';
-import { useLocale } from '@/components/i18n/locale-provider';
 import { formatDuration, formatViews } from '@/lib/video-format';
 import type { VideoListItem } from '@/types/video';
 
 type Props = {
   video: VideoListItem;
+  locale: Locale;
   priority?: boolean;
 };
 
-export function VideoCard({ video }: Props) {
-  const locale = useLocale();
+export function VideoCard({ video, locale }: Props) {
   const isShort = video.contentType === 'SHORT';
 
   return (

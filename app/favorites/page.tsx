@@ -66,7 +66,7 @@ export default async function FavoritesPage() {
           ) : favorites.length ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 xl:gap-5">
               {favorites.map((item) => (
-                <VideoCard key={item.id} video={item.video} />
+                <VideoCard key={item.id} video={item.video} locale={locale} />
               ))}
             </div>
           ) : (
