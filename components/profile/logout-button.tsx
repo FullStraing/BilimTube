@@ -2,8 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import { LogOut } from 'lucide-react';
+import { useLocale } from '@/components/i18n/locale-provider';
 
 export function LogoutButton() {
+  const locale = useLocale();
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -20,7 +22,7 @@ export function LogoutButton() {
     >
       <span className="inline-flex items-center gap-3">
         <LogOut className="h-6 w-6" />
-        Выйти
+        {locale === 'en' ? 'Log out' : locale === 'ky' ? 'Чыгуу' : 'Выйти'}
       </span>
       <span aria-hidden> </span>
     </button>

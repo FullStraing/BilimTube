@@ -2,11 +2,13 @@
 import { prisma } from '@/lib/prisma';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
+  const locale = await getLocaleFromCookie();
   const { slug } = await params;
   const user = await getCurrentUserFromSession();
   const policy = user ? await getActiveChildPolicy(user.id) : null;
@@ -32,7 +34,7 @@ export async function GET(
   });
 
   if (!video) {
-    return NextResponse.json({ error: 'Видео не найдено' }, { status: 404 });
+    return NextResponse.json({ error: translate(locale, 'common.videoNotFound') }, { status: 404 });
   }
 
   if (!user) {

@@ -10,6 +10,9 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { useLocale } from '@/components/i18n/locale-provider';
+import { localizeCategoryName } from '@/lib/categories';
+import { translate } from '@/lib/i18n/messages';
 import { childProfileSchema, type ChildProfileValues } from './schema';
 
 const colorOptions = ['#FF6B9C', '#55C4F1', '#FFB84D', '#A88BFF', '#38D39F', '#FF7A7A'];
@@ -27,6 +30,7 @@ const interestsOptions = [
 ];
 
 export function ChildProfileForm() {
+  const locale = useLocale();
   const router = useRouter();
   const { toast } = useToast();
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
@@ -70,7 +74,7 @@ export function ChildProfileForm() {
     });
 
     if (res.status === 401) {
-      toast({ title: 'Ошибка', description: 'Сессия истекла, войдите снова' });
+      toast({ title: translate(locale, 'quiz.errorTitle'), description: translate(locale, 'child.sessionExpired') });
       router.push('/auth/login');
       return;
     }
@@ -78,13 +82,13 @@ export function ChildProfileForm() {
     if (!res.ok) {
       const responsePayload = await res.json().catch(() => null);
       toast({
-        title: 'Ошибка',
-        description: responsePayload?.error ?? 'Не удалось сохранить профиль'
+        title: translate(locale, 'quiz.errorTitle'),
+        description: responsePayload?.error ?? translate(locale, 'child.saveFailed')
       });
       return;
     }
 
-    toast({ title: 'Профиль создан', description: 'Добро пожаловать!' });
+    toast({ title: translate(locale, 'child.createdTitle'), description: translate(locale, 'child.createdDescription') });
     router.push('/parent/profiles' as Route);
   };
 
@@ -94,19 +98,19 @@ export function ChildProfileForm() {
         <Link
           href={'/parent/profiles' as Route}
           className="inline-flex h-10 w-10 items-center justify-center rounded-full text-primary transition hover:bg-secondary"
-          aria-label="Назад"
+          aria-label={translate(locale, 'common.back')}
         >
           <ArrowLeft className="h-6 w-6" />
         </Link>
 
         <div>
-          <h1 className="text-2xl font-semibold text-primary">Создать профиль</h1>
-          <p className="mt-2 text-sm text-primary/80">Настройте профиль для ребёнка</p>
+          <h1 className="text-2xl font-semibold text-primary">{translate(locale, 'child.createTitle')}</h1>
+          <p className="mt-2 text-sm text-primary/80">{translate(locale, 'child.createSubtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-3">
-            <p className="text-sm font-semibold text-primary">Цвет аватара</p>
+            <p className="text-sm font-semibold text-primary">{translate(locale, 'child.avatarColor')}</p>
             <div className="flex flex-wrap gap-3">
               {colorOptions.map((color) => (
                 <button
@@ -130,11 +134,11 @@ export function ChildProfileForm() {
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-primary">
-              Имя ребёнка <span className="text-destructive">*</span>
+              {translate(locale, 'child.name')} <span className="text-destructive">*</span>
             </label>
             <Input
               className="h-12 rounded-[16px] border-2 border-[#D0D8DF] text-sm"
-              placeholder="Например, Маша"
+              placeholder={translate(locale, 'child.namePlaceholder')}
               {...register('name')}
             />
             {errors.name?.message ? <p className="text-xs text-destructive">{errors.name.message}</p> : null}
@@ -142,11 +146,11 @@ export function ChildProfileForm() {
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-primary">
-              Возраст (4-13 лет) <span className="text-destructive">*</span>
+              {translate(locale, 'child.age')} <span className="text-destructive">*</span>
             </label>
             <Input
               className="h-12 rounded-[16px] border-2 border-[#D0D8DF] text-sm"
-              placeholder="Например, 7"
+              placeholder={translate(locale, 'child.agePlaceholder')}
               {...register('age')}
             />
             {errors.age?.message ? <p className="text-xs text-destructive">{errors.age.message}</p> : null}
@@ -154,7 +158,7 @@ export function ChildProfileForm() {
 
           <div className="space-y-3">
             <label className="text-sm font-semibold text-primary">
-              Интересы <span className="text-destructive">*</span>
+              {translate(locale, 'child.interests')} <span className="text-destructive">*</span>
             </label>
             <div className="flex flex-wrap gap-3">
               {interestsOptions.map((interest) => {
@@ -168,7 +172,7 @@ export function ChildProfileForm() {
                       active ? 'bg-primary text-white' : 'bg-secondary text-primary hover:brightness-95'
                     }`}
                   >
-                    {interest}
+                    {localizeCategoryName(interest, locale)}
                   </button>
                 );
               })}
@@ -183,7 +187,7 @@ export function ChildProfileForm() {
             className="h-14 w-full rounded-[20px] bg-primary text-white text-base font-semibold hover:brightness-110"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Сохраняем...' : 'Создать профиль'}
+            {isSubmitting ? translate(locale, 'child.saving') : translate(locale, 'child.create')}
           </Button>
         </form>
       </div>

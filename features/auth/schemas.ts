@@ -3,17 +3,17 @@
 export const loginSchema = z
   .object({
     method: z.enum(['email', 'phone']),
-    identifier: z.string().min(1, 'Введите email или телефон'),
-    password: z.string().min(6, 'Минимум 6 символов')
+    identifier: z.string().min(1, 'validation.auth.identifier'),
+    password: z.string().min(6, 'validation.auth.passwordMin')
   })
   .superRefine((data, ctx) => {
     if (data.method === 'email') {
-      const email = z.string().email('Введите корректный email');
+      const email = z.string().email('validation.auth.email');
       const res = email.safeParse(data.identifier);
       if (!res.success) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Введите корректный email',
+          message: 'validation.auth.email',
           path: ['identifier']
         });
       }
@@ -23,7 +23,7 @@ export const loginSchema = z
       if (!phone.test(data.identifier)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Введите корректный телефон',
+          message: 'validation.auth.phone',
           path: ['identifier']
         });
       }
@@ -34,18 +34,18 @@ export const registerSchema = z
   .object({
     accountType: z.enum(['self', 'family']),
     method: z.enum(['email', 'phone']),
-    identifier: z.string().min(1, 'Введите email или телефон'),
-    password: z.string().min(6, 'Минимум 6 символов'),
-    confirmPassword: z.string().min(6, 'Минимум 6 символов')
+    identifier: z.string().min(1, 'validation.auth.identifier'),
+    password: z.string().min(6, 'validation.auth.passwordMin'),
+    confirmPassword: z.string().min(6, 'validation.auth.passwordMin')
   })
   .superRefine((data, ctx) => {
     if (data.method === 'email') {
-      const email = z.string().email('Введите корректный email');
+      const email = z.string().email('validation.auth.email');
       const res = email.safeParse(data.identifier);
       if (!res.success) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Введите корректный email',
+          message: 'validation.auth.email',
           path: ['identifier']
         });
       }
@@ -55,7 +55,7 @@ export const registerSchema = z
       if (!phone.test(data.identifier)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Введите корректный телефон',
+          message: 'validation.auth.phone',
           path: ['identifier']
         });
       }
@@ -63,7 +63,7 @@ export const registerSchema = z
     if (data.password !== data.confirmPassword) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Пароли не совпадают',
+        message: 'validation.auth.passwordMismatch',
         path: ['confirmPassword']
       });
     }
@@ -71,4 +71,3 @@ export const registerSchema = z
 
 export type LoginValues = z.infer<typeof loginSchema>;
 export type RegisterValues = z.infer<typeof registerSchema>;
-

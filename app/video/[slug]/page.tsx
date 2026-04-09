@@ -2,18 +2,17 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import {
-  ArrowLeft,
-  ScrollText
-} from 'lucide-react';
+import { ArrowLeft, ScrollText } from 'lucide-react';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
 import { localizeVideo, localizeVideoList } from '@/lib/content-localization';
+import { localizeCategoryName } from '@/lib/categories';
 import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
 import { formatDuration, formatViews } from '@/lib/video-format';
 import { VideoActions } from '@/components/video/video-actions';
 import { WatchTracker } from '@/components/video/watch-tracker';
+import { AdaptiveVideoPlayer } from '@/components/video/adaptive-video-player';
 import { MainNavigation } from '@/components/layout/main-navigation';
 import { HeaderProfileLink, PageHeader } from '@/components/layout/page-header';
 
@@ -52,7 +51,8 @@ export default async function VideoPage({
       thumbnailUrl: true,
       videoUrl: true,
       durationSec: true,
-      viewsCount: true
+      viewsCount: true,
+      contentType: true
     }
   });
 
@@ -60,6 +60,7 @@ export default async function VideoPage({
     notFound();
   }
   const localizedVideo = localizeVideo(video, locale);
+  const isShort = video.contentType === 'SHORT';
 
   const similar = await prisma.video.findMany({
     where: {
@@ -82,7 +83,8 @@ export default async function VideoPage({
       ageGroup: true,
       thumbnailUrl: true,
       durationSec: true,
-      viewsCount: true
+      viewsCount: true,
+      contentType: true
     }
   });
   const localizedSimilar = localizeVideoList(similar, locale);
@@ -118,20 +120,11 @@ export default async function VideoPage({
         <section className="px-4 sm:px-5 lg:ml-[220px] lg:px-6">
           <div className="mx-auto w-full max-w-[1400px] lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
             <div className="space-y-4">
-              <div className="relative overflow-hidden rounded-[22px] bg-black">
-                <video
-                  autoPlay
-                  playsInline
-                  preload="metadata"
-                  controls
-                  poster={video.thumbnailUrl}
-                  className="aspect-video w-full object-cover"
-                >
-                  <source src={video.videoUrl} type="video/mp4" />
-                </video>
+              <div className="relative overflow-hidden rounded-[22px]">
+                <AdaptiveVideoPlayer src={video.videoUrl} poster={video.thumbnailUrl} isLikelyShort={isShort} />
                 <Link
                   href={'/home' as Route}
-                  className="absolute left-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60"
+                  className="absolute left-3 top-3 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60"
                   aria-label={translate(locale, 'quiz.back')}
                 >
                   <ArrowLeft className="h-6 w-6" />
@@ -142,8 +135,8 @@ export default async function VideoPage({
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1">
                     <h1 className="text-[38px] font-bold leading-tight text-primary lg:text-[44px]">{localizedVideo.title}</h1>
-                    <p className="text-[20px] text-primary/90">{localizedVideo.category}</p>
-                    <p className="text-[18px] text-primary/80">{formatViews(video.viewsCount)}</p>
+                    <p className="text-[20px] text-primary/90">{localizeCategoryName(localizedVideo.category, locale)}</p>
+                    <p className="text-[18px] text-primary/80">{formatViews(video.viewsCount, locale)}</p>
                   </div>
                   <VideoActions videoId={video.id} videoSlug={video.slug} initialIsFavorite={isFavorite} />
                 </div>
@@ -173,27 +166,42 @@ export default async function VideoPage({
             <aside className="mt-5 space-y-3 lg:mt-0">
               <h2 className="text-[34px] font-bold text-primary lg:text-[30px]">{translate(locale, 'video.similarTitle')}</h2>
               {localizedSimilar.length ? (
-                localizedSimilar.map((item) => (
-                  <Link
-                    key={item.id}
-                    href={`/video/${item.slug}` as Route}
-                    className="flex gap-3 rounded-[16px] border border-border bg-card p-3 shadow-card transition hover:brightness-[0.99]"
-                  >
-                    <div className="relative h-[96px] w-[140px] shrink-0 overflow-hidden rounded-xl bg-muted">
-                      <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover" sizes="160px" />
-                      <div className="absolute right-1 top-1 rounded-full bg-[#0AC95E] px-2 py-0.5 text-[12px] font-bold text-white">
-                        {item.ageGroup}
+                localizedSimilar.map((item) => {
+                  const isSimilarShort = item.contentType === 'SHORT';
+
+                  return (
+                    <Link
+                      key={item.id}
+                      href={`/video/${item.slug}` as Route}
+                      className="flex gap-3 rounded-[16px] border border-border bg-card p-3 shadow-card transition hover:brightness-[0.99]"
+                    >
+                      <div className={`relative shrink-0 overflow-hidden rounded-xl bg-muted ${isSimilarShort ? 'h-[124px] w-[88px]' : 'h-[96px] w-[140px]'}`}>
+                        {isSimilarShort ? (
+                          <>
+                            <Image src={item.thumbnailUrl} alt="" fill aria-hidden="true" className="object-cover opacity-30 blur-xl scale-110" sizes="96px" />
+                            <div className="absolute inset-0 p-1.5">
+                              <div className="relative h-full w-full overflow-hidden rounded-[10px] bg-black/10">
+                                <Image src={item.thumbnailUrl} alt={item.title} fill className="object-contain" sizes="96px" />
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover" sizes="160px" />
+                        )}
+                        <div className="absolute right-1 top-1 rounded-full bg-[#0AC95E] px-2 py-0.5 text-[12px] font-bold text-white">
+                          {item.ageGroup}
+                        </div>
                       </div>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="line-clamp-2 text-[20px] font-bold leading-tight text-primary">{item.title}</p>
-                      <p className="mt-1 text-[16px] text-primary/85">{item.category}</p>
-                      <p className="text-[15px] text-primary/75">
-                        {formatDuration(item.durationSec)} • {formatViews(item.viewsCount)}
-                      </p>
-                    </div>
-                  </Link>
-                ))
+                      <div className="min-w-0">
+                        <p className="line-clamp-2 text-[20px] font-bold leading-tight text-primary">{item.title}</p>
+                        <p className="mt-1 text-[16px] text-primary/85">{localizeCategoryName(item.category, locale)}</p>
+                        <p className="text-[15px] text-primary/75">
+                          {formatDuration(item.durationSec)} ? {formatViews(item.viewsCount, locale)}
+                        </p>
+                      </div>
+                    </Link>
+                  );
+                })
               ) : (
                 <div className="rounded-[18px] border border-border bg-card p-4 text-[16px] text-primary/80 shadow-card">
                   {translate(locale, 'video.similarEmpty')}
@@ -206,3 +214,4 @@ export default async function VideoPage({
     </div>
   );
 }
+

@@ -4,7 +4,9 @@ import type { Route } from 'next';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, BookOpen, Clock3, Eye, Shield } from 'lucide-react';
+import { useLocale } from '@/components/i18n/locale-provider';
 import { useToast } from '@/components/ui/use-toast';
+import { translate } from '@/lib/i18n/messages';
 import { toTitleCase } from '@/lib/text';
 
 type ChildControlData = {
@@ -24,6 +26,7 @@ type ParentControlsProps = {
 const limits = [30, 60, 120, 180] as const;
 
 export function ParentControlsView({ child }: ParentControlsProps) {
+  const locale = useLocale();
   const { toast } = useToast();
   const [dailyLimit, setDailyLimit] = useState<number>(child.dailyLimitMinutes ?? 120);
   const [educationalOnly, setEducationalOnly] = useState<boolean>(child.educationalOnly ?? false);
@@ -47,8 +50,8 @@ export function ParentControlsView({ child }: ParentControlsProps) {
 
     if (!allowedAgeGroups.length) {
       toast({
-        title: 'Ошибка',
-        description: 'Выберите хотя бы одну возрастную категорию.'
+        title: translate(locale, 'parentControl.errorTitle'),
+        description: translate(locale, 'parentControl.selectAgeError')
       });
       return;
     }
@@ -69,13 +72,16 @@ export function ParentControlsView({ child }: ParentControlsProps) {
       const payload = await response.json();
       if (!response.ok) {
         toast({
-          title: 'Ошибка сохранения',
-          description: payload.error ?? 'Не удалось сохранить настройки.'
+          title: translate(locale, 'parentControl.saveErrorTitle'),
+          description: payload.error ?? translate(locale, 'parentControl.saveError')
         });
         return;
       }
 
-      toast({ title: 'Сохранено', description: 'Настройки родительского контроля обновлены.' });
+      toast({
+        title: translate(locale, 'parentControl.savedTitle'),
+        description: translate(locale, 'parentControl.savedDescription')
+      });
     } finally {
       setIsSaving(false);
     }
@@ -88,7 +94,7 @@ export function ParentControlsView({ child }: ParentControlsProps) {
           <Link
             href={'/parent/profiles' as Route}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full text-primary transition hover:bg-secondary"
-            aria-label="Назад"
+            aria-label={translate(locale, 'common.back')}
           >
             <ArrowLeft className="h-6 w-6" />
           </Link>
@@ -96,17 +102,19 @@ export function ParentControlsView({ child }: ParentControlsProps) {
           <div className="flex items-start gap-3">
             <Shield className="mt-1 h-7 w-7 text-primary" />
             <div className="space-y-1">
-              <h1 className="text-[46px] font-extrabold leading-[0.95] tracking-tight text-primary">Родительский контроль</h1>
-              <p className="text-[18px] font-medium leading-tight text-primary/90">{toTitleCase(child.name)}: управление безопасностью</p>
+              <h1 className="text-[46px] font-extrabold leading-[0.95] tracking-tight text-primary">{translate(locale, 'parentControl.title')}</h1>
+              <p className="text-[18px] font-medium leading-tight text-primary/90">
+                {translate(locale, 'parentControl.subtitle', { name: toTitleCase(child.name) })}
+              </p>
             </div>
           </div>
         </header>
 
         <section className="rounded-[24px] border border-border bg-card px-4 py-4 shadow-card">
           <h2 className="mb-2 flex items-center gap-2 text-[32px] font-bold tracking-tight text-primary">
-            <Clock3 className="h-6 w-6" /> Лимит времени
+            <Clock3 className="h-6 w-6" /> {translate(locale, 'parentControl.timeLimit')}
           </h2>
-          <p className="mb-4 text-[18px] font-medium text-primary/90">Максимальное время просмотра в день</p>
+          <p className="mb-4 text-[18px] font-medium text-primary/90">{translate(locale, 'parentControl.timeLimitDescription')}</p>
           <div className="mb-4 flex items-end justify-between gap-3">
             <div className="h-3 flex-1 rounded-full bg-[#D5D5D5]">
               <div
@@ -114,7 +122,9 @@ export function ParentControlsView({ child }: ParentControlsProps) {
                 style={{ width: `${Math.max(16, (dailyLimit / 180) * 100)}%` }}
               />
             </div>
-            <p className="text-[28px] font-bold leading-none text-primary">{dailyLimit} мин</p>
+            <p className="text-[28px] font-bold leading-none text-primary">
+              {dailyLimit} {translate(locale, 'common.minutes')}
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
             {limits.map((limit) => (
@@ -126,7 +136,7 @@ export function ParentControlsView({ child }: ParentControlsProps) {
                   limit === dailyLimit ? 'bg-primary text-white' : 'bg-secondary text-primary hover:brightness-95'
                 }`}
               >
-                {limit} мин
+                {limit} {translate(locale, 'common.minutes')}
               </button>
             ))}
           </div>
@@ -134,12 +144,12 @@ export function ParentControlsView({ child }: ParentControlsProps) {
 
         <section className="rounded-[24px] border border-border bg-card px-4 py-4 shadow-card">
           <h2 className="mb-3 flex items-center gap-2 text-[32px] font-bold tracking-tight text-primary">
-            <BookOpen className="h-6 w-6" /> Фильтр контента
+            <BookOpen className="h-6 w-6" /> {translate(locale, 'parentControl.contentFilter')}
           </h2>
           <label className="flex items-center justify-between rounded-[16px] bg-secondary px-4 py-3">
             <div>
-              <p className="text-[20px] font-bold leading-none text-primary">Только обучающие видео</p>
-              <p className="mt-1 text-[16px] font-medium text-primary/85">Скрыть развлекательный контент</p>
+              <p className="text-[20px] font-bold leading-none text-primary">{translate(locale, 'parentControl.educationalOnly')}</p>
+              <p className="mt-1 text-[16px] font-medium text-primary/85">{translate(locale, 'parentControl.educationalOnlyDesc')}</p>
             </div>
             <input
               type="checkbox"
@@ -152,12 +162,12 @@ export function ParentControlsView({ child }: ParentControlsProps) {
 
         <section className="rounded-[24px] border border-border bg-card px-4 py-4 shadow-card">
           <h2 className="mb-2 flex items-center gap-2 text-[32px] font-bold tracking-tight text-primary">
-            <Eye className="h-6 w-6" /> Возрастные ограничения
+            <Eye className="h-6 w-6" /> {translate(locale, 'parentControl.ageLimits')}
           </h2>
-          <p className="mb-3 text-[18px] font-medium text-primary/90">Выберите разрешенные возрастные категории</p>
+          <p className="mb-3 text-[18px] font-medium text-primary/90">{translate(locale, 'parentControl.ageLimitsDescription')}</p>
           <div className="space-y-2">
             <label className="flex items-center justify-between rounded-[16px] bg-secondary px-4 py-3">
-              <span className="text-[20px] font-semibold leading-none text-primary">4-6 лет</span>
+              <span className="text-[20px] font-semibold leading-none text-primary">4-6 {translate(locale, 'common.years')}</span>
               <input
                 type="checkbox"
                 checked={age4to6}
@@ -166,7 +176,7 @@ export function ParentControlsView({ child }: ParentControlsProps) {
               />
             </label>
             <label className="flex items-center justify-between rounded-[16px] bg-secondary px-4 py-3">
-              <span className="text-[20px] font-semibold leading-none text-primary">7-9 лет</span>
+              <span className="text-[20px] font-semibold leading-none text-primary">7-9 {translate(locale, 'common.years')}</span>
               <input
                 type="checkbox"
                 checked={age7to9}
@@ -175,7 +185,7 @@ export function ParentControlsView({ child }: ParentControlsProps) {
               />
             </label>
             <label className="flex items-center justify-between rounded-[16px] bg-secondary px-4 py-3">
-              <span className="text-[20px] font-semibold leading-none text-primary">10-13 лет</span>
+              <span className="text-[20px] font-semibold leading-none text-primary">10-13 {translate(locale, 'common.years')}</span>
               <input
                 type="checkbox"
                 checked={age10to13}
@@ -193,13 +203,13 @@ export function ParentControlsView({ child }: ParentControlsProps) {
             disabled={isSaving}
             className="flex h-16 w-full items-center justify-center rounded-[20px] bg-primary text-center text-[18px] font-bold text-white transition hover:brightness-110 disabled:opacity-60"
           >
-            {isSaving ? 'Сохраняем...' : 'Сохранить настройки'}
+            {isSaving ? translate(locale, 'parentControl.saving') : translate(locale, 'parentControl.save')}
           </button>
           <Link
             href={'/parent/profiles' as Route}
             className="block text-center text-[18px] font-semibold text-primary hover:underline"
           >
-            Назад к профилям
+            {translate(locale, 'parentControl.backToProfiles')}
           </Link>
         </section>
       </div>

@@ -20,7 +20,7 @@ export default async function HomePage() {
       : null;
 
   const profileLetter = (child?.name?.trim()?.charAt(0) ?? 'M').toUpperCase();
-  const helloName = child?.name ? toTitleCase(child.name) : 'друг';
+  const helloName = child?.name ? toTitleCase(child.name) : translate(locale, 'home.fallbackName');
 
   return (
     <div className="min-h-screen bg-background">

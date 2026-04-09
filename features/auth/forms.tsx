@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { GoogleAuthButton } from '@/components/auth/google-auth-button';
+import { useLocale } from '@/components/i18n/locale-provider';
+import { translate } from '@/lib/i18n/messages';
 import { loginSchema, registerSchema, type LoginValues, type RegisterValues } from './schemas';
 
 const segmentedRoot =
@@ -20,26 +22,29 @@ const segmentedItem =
   'flex-1 rounded-[16px] py-2.5 text-center transition shadow-soft hover:brightness-95';
 
 const countries = [
-  { code: 'KG', name: 'Кыргызстан', dial: '+996' },
-  { code: 'RU', name: 'Россия', dial: '+7' },
-  { code: 'US', name: 'США', dial: '+1' },
-  { code: 'GB', name: 'Великобритания', dial: '+44' },
-  { code: 'DE', name: 'Германия', dial: '+49' }
+  { code: 'KG', name: { ru: 'Кыргызстан', en: 'Kyrgyzstan', ky: 'Кыргызстан' }, dial: '+996' },
+  { code: 'RU', name: { ru: 'Россия', en: 'Russia', ky: 'Россия' }, dial: '+7' },
+  { code: 'US', name: { ru: 'США', en: 'USA', ky: 'АКШ' }, dial: '+1' },
+  { code: 'GB', name: { ru: 'Великобритания', en: 'United Kingdom', ky: 'Улуу Британия' }, dial: '+44' },
+  { code: 'DE', name: { ru: 'Германия', en: 'Germany', ky: 'Германия' }, dial: '+49' }
 ];
 
 function FieldError({ message }: { message?: string }) {
+  const locale = useLocale();
   if (!message) return null;
-  return <p className="text-xs text-destructive">{message}</p>;
+  return <p className="text-xs text-destructive">{translate(locale, message)}</p>;
 }
 
 function AuthHeader({ title, subtitle }: { title: string; subtitle: string }) {
+  const locale = useLocale();
+
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="flex w-full items-center justify-start">
         <Link
           href="/"
           className="inline-flex h-10 w-10 items-center justify-center rounded-full text-primary transition hover:bg-secondary"
-          aria-label="Назад"
+          aria-label={translate(locale, 'common.back')}
         >
           <ArrowLeft className="h-6 w-6" />
         </Link>
@@ -60,6 +65,8 @@ function AuthMethodSwitch({
   method: 'email' | 'phone';
   onMethodChange: (method: 'email' | 'phone') => void;
 }) {
+  const locale = useLocale();
+
   return (
     <div className="mt-6 flex justify-center">
       <div className={segmentedRoot}>
@@ -68,14 +75,14 @@ function AuthMethodSwitch({
           className={`${segmentedItem} ${method === 'email' ? 'bg-white text-primary hover:brightness-95' : 'text-primary/70 shadow-none'}`}
           onClick={() => onMethodChange('email')}
         >
-          Email
+          {translate(locale, 'auth.email')}
         </button>
         <button
           type="button"
           className={`${segmentedItem} ${method === 'phone' ? 'bg-white text-primary hover:brightness-95' : 'text-primary/70 shadow-none'}`}
           onClick={() => onMethodChange('phone')}
         >
-          Телефон
+          {translate(locale, 'auth.phone')}
         </button>
       </div>
     </div>
@@ -101,11 +108,13 @@ function AuthIdentifierField<T extends FieldValues>({
   register: UseFormRegister<T>;
   errorMessage?: string;
 }) {
+  const locale = useLocale();
+
   if (method === 'email') {
     return (
       <div className="space-y-2">
         <label className="text-sm font-semibold text-primary">
-          Email <span className="text-destructive">*</span>
+          {translate(locale, 'auth.email')} <span className="text-destructive">*</span>
         </label>
         <div className="relative">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
@@ -125,7 +134,7 @@ function AuthIdentifierField<T extends FieldValues>({
   return (
     <div className="space-y-2">
       <label className="text-sm font-semibold text-primary">
-        Номер телефона <span className="text-destructive">*</span>
+        {translate(locale, 'auth.phoneNumber')} <span className="text-destructive">*</span>
       </label>
       <div ref={countryMenuRef} className="relative">
         <div className="grid grid-cols-[120px_1fr] gap-3">
@@ -163,7 +172,7 @@ function AuthIdentifierField<T extends FieldValues>({
                 }}
               >
                 <span>
-                  {item.code} {item.name}
+                  {item.code} {item.name[locale]}
                 </span>
                 <span>{item.dial}</span>
               </button>
@@ -177,6 +186,7 @@ function AuthIdentifierField<T extends FieldValues>({
 }
 
 function useGoogleOauthErrorToast() {
+  const locale = useLocale();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -185,20 +195,22 @@ function useGoogleOauthErrorToast() {
     if (!oauthError) return;
 
     const descriptionMap: Record<string, string> = {
-      invalid_state: 'Не удалось подтвердить вход через Google. Попробуйте снова.',
-      email_required: 'В Google-аккаунте нет подтвержденного email.',
-      failed: 'Ошибка авторизации через Google. Попробуйте еще раз.',
-      google_unavailable: 'Google OAuth не настроен на сервере.'
+      invalid_state: translate(locale, 'auth.oauth.invalid_state'),
+      email_required: translate(locale, 'auth.oauth.email_required'),
+      failed: translate(locale, 'auth.oauth.failed'),
+      google_unavailable: translate(locale, 'auth.oauth.google_unavailable'),
+      db_unavailable: translate(locale, 'auth.oauth.db_unavailable')
     };
 
     toast({
-      title: 'Google авторизация',
-      description: descriptionMap[oauthError] ?? 'Не удалось выполнить вход через Google.'
+      title: translate(locale, 'auth.oauthTitle'),
+      description: descriptionMap[oauthError] ?? translate(locale, 'auth.oauth.default')
     });
-  }, [toast]);
+  }, [locale, toast]);
 }
 
 export function LoginForm() {
+  const locale = useLocale();
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -250,11 +262,11 @@ export function LoginForm() {
 
       const data = await res.json();
       if (!res.ok) {
-        toast({ title: 'Ошибка входа', description: data.error ?? 'Не удалось войти' });
+        toast({ title: translate(locale, 'auth.loginError'), description: data.error ?? translate(locale, 'auth.loginFailed') });
         return;
       }
 
-      toast({ title: 'Вход', description: 'Успешный вход' });
+      toast({ title: translate(locale, 'auth.loginTitle'), description: translate(locale, 'auth.loginSuccess') });
       router.push('/profile');
     } finally {
       setIsLoading(false);
@@ -265,7 +277,7 @@ export function LoginForm() {
     <div className="flex w-full flex-col items-center">
       <div className="w-full max-w-md">
         <div className="rounded-[28px] border border-border bg-card px-6 pb-8 pt-8 shadow-card">
-          <AuthHeader title="Вход" subtitle="Войдите в свой аккаунт" />
+          <AuthHeader title={translate(locale, 'auth.loginTitle')} subtitle={translate(locale, 'auth.loginSubtitle')} />
 
           <div className="mt-6">
             <GoogleAuthButton mode="login" />
@@ -296,7 +308,7 @@ export function LoginForm() {
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-primary">
-                Пароль <span className="text-destructive">*</span>
+                {translate(locale, 'auth.password')} <span className="text-destructive">*</span>
               </label>
               <div className="relative">
                 <Input
@@ -309,7 +321,7 @@ export function LoginForm() {
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-primary"
-                  aria-label="Показать пароль"
+                  aria-label={translate(locale, 'auth.showPassword')}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -317,23 +329,21 @@ export function LoginForm() {
               <FieldError message={errors.password?.message} />
             </div>
 
-            <Link href="/" className="text-sm font-semibold text-primary">
-              Забыли пароль?
-            </Link>
+            <Link href="/" className="text-sm font-semibold text-primary">{translate(locale, 'auth.forgotPassword')}</Link>
 
             <Button
               type="submit"
               className="h-14 w-full rounded-[20px] bg-primary text-base font-semibold text-white"
               disabled={isLoading}
             >
-              {isLoading ? 'Входим...' : 'Войти'}
+              {isLoading ? translate(locale, 'auth.signingIn') : translate(locale, 'auth.signIn')}
             </Button>
           </form>
 
           <p className="mt-5 text-center text-sm text-primary">
-            Нет аккаунта?{' '}
+            {translate(locale, 'auth.noAccount')}{' '}
             <Link href="/auth/register" className="font-semibold">
-              Создать
+              {translate(locale, 'auth.create')}
             </Link>
           </p>
         </div>
@@ -343,6 +353,7 @@ export function LoginForm() {
 }
 
 export function RegisterForm() {
+  const locale = useLocale();
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -403,11 +414,14 @@ export function RegisterForm() {
 
       const data = await res.json();
       if (!res.ok) {
-        toast({ title: 'Ошибка регистрации', description: data.error ?? 'Не удалось создать аккаунт' });
+        toast({
+          title: translate(locale, 'auth.registerError'),
+          description: data.error ?? translate(locale, 'auth.registerFailed')
+        });
         return;
       }
 
-      toast({ title: 'Регистрация', description: 'Аккаунт создан' });
+      toast({ title: translate(locale, 'auth.registerTitle'), description: translate(locale, 'auth.registerSuccess') });
       router.push('/child/create');
     } finally {
       setIsLoading(false);
@@ -418,14 +432,14 @@ export function RegisterForm() {
     <div className="flex w-full flex-col items-center">
       <div className="w-full max-w-md">
         <div className="rounded-[28px] border border-border bg-card px-6 pb-8 pt-8 shadow-card">
-          <AuthHeader title="Регистрация" subtitle="Создайте аккаунт для доступа" />
+          <AuthHeader title={translate(locale, 'auth.registerTitle')} subtitle={translate(locale, 'auth.registerSubtitle')} />
 
           <div className="mt-6">
             <GoogleAuthButton mode="register" />
           </div>
 
           <div className="mt-6 space-y-3">
-            <p className="text-sm font-semibold text-primary">Тип аккаунта</p>
+            <p className="text-sm font-semibold text-primary">{translate(locale, 'auth.accountType')}</p>
             <button
               type="button"
               className={`w-full rounded-[18px] border-2 px-4 py-3 text-left transition ${
@@ -438,8 +452,8 @@ export function RegisterForm() {
                 setValue('accountType', 'self');
               }}
             >
-              <div className="text-sm font-semibold">Только для себя</div>
-              <div className="mt-1 text-xs opacity-80">Родительский аккаунт для контроля</div>
+              <div className="text-sm font-semibold">{translate(locale, 'auth.accountSelfTitle')}</div>
+              <div className="mt-1 text-xs opacity-80">{translate(locale, 'auth.accountSelfDesc')}</div>
             </button>
             <button
               type="button"
@@ -453,8 +467,8 @@ export function RegisterForm() {
                 setValue('accountType', 'family');
               }}
             >
-              <div className="text-sm font-semibold">Для себя и ребенка</div>
-              <div className="mt-1 text-xs opacity-80">Один номер/email для обоих аккаунтов</div>
+              <div className="text-sm font-semibold">{translate(locale, 'auth.accountFamilyTitle')}</div>
+              <div className="mt-1 text-xs opacity-80">{translate(locale, 'auth.accountFamilyDesc')}</div>
             </button>
           </div>
 
@@ -483,20 +497,20 @@ export function RegisterForm() {
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-primary">
-                Пароль <span className="text-destructive">*</span>
+                {translate(locale, 'auth.password')} <span className="text-destructive">*</span>
               </label>
               <div className="relative">
                 <Input
                   type={showPassword ? 'text' : 'password'}
                   className="h-12 rounded-[16px] border-2 border-[#D0D8DF] pr-12 text-sm"
-                  placeholder="Минимум 6 символов"
+                  placeholder={translate(locale, 'auth.minChars')}
                   {...register('password')}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-primary"
-                  aria-label="Показать пароль"
+                  aria-label={translate(locale, 'auth.showPassword')}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -506,20 +520,20 @@ export function RegisterForm() {
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-primary">
-                Подтвердите пароль <span className="text-destructive">*</span>
+                {translate(locale, 'auth.confirmPassword')} <span className="text-destructive">*</span>
               </label>
               <div className="relative">
                 <Input
                   type={showConfirm ? 'text' : 'password'}
                   className="h-12 rounded-[16px] border-2 border-[#D0D8DF] pr-12 text-sm"
-                  placeholder="Введите пароль еще раз"
+                  placeholder={translate(locale, 'auth.enterPasswordAgain')}
                   {...register('confirmPassword')}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirm((prev) => !prev)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-primary"
-                  aria-label="Показать пароль"
+                  aria-label={translate(locale, 'auth.showPassword')}
                 >
                   {showConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -532,14 +546,14 @@ export function RegisterForm() {
               className="h-14 w-full rounded-[20px] bg-primary text-base font-semibold text-white"
               disabled={isLoading}
             >
-              {isLoading ? 'Создаем...' : 'Создать аккаунт'}
+              {isLoading ? translate(locale, 'auth.creating') : translate(locale, 'auth.signUp')}
             </Button>
           </form>
 
           <p className="mt-5 text-center text-sm text-primary">
-            Уже есть аккаунт?{' '}
+            {translate(locale, 'auth.haveAccount')}{' '}
             <Link href="/auth/login" className="font-semibold">
-              Войти
+              {translate(locale, 'auth.signIn')}
             </Link>
           </p>
         </div>

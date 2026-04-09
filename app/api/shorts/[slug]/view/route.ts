@@ -2,6 +2,7 @@
 import { z } from 'zod';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
 
 const payloadSchema = z.object({
@@ -10,6 +11,7 @@ const payloadSchema = z.object({
 });
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const locale = await getLocaleFromCookie();
   const user = await getCurrentUserFromSession();
   if (!user) {
     return NextResponse.json({ ok: true });
@@ -23,7 +25,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   const body = await req.json().catch(() => ({}));
   const parsed = payloadSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Некорректные данные' }, { status: 400 });
+    return NextResponse.json({ error: translate(locale, 'common.invalidData') }, { status: 400 });
   }
 
   const { slug } = await params;
@@ -38,7 +40,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   });
 
   if (!video) {
-    return NextResponse.json({ error: 'Видео не найдено' }, { status: 404 });
+    return NextResponse.json({ error: translate(locale, 'common.videoNotFound') }, { status: 404 });
   }
 
   const watchedMs = parsed.data.watchedMs ?? 0;

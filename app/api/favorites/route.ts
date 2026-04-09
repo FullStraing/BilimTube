@@ -1,11 +1,13 @@
 ﻿import { NextResponse } from 'next/server';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
+import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
 
 export async function GET() {
+  const locale = await getLocaleFromCookie();
   const user = await getCurrentUserFromSession();
   if (!user) {
-    return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+    return NextResponse.json({ error: translate(locale, 'common.notAuthorized') }, { status: 401 });
   }
   const activeChildId = await getActiveChildIdForUser(user.id);
   if (!activeChildId) {
@@ -36,4 +38,3 @@ export async function GET() {
 
   return NextResponse.json(favorites);
 }
-

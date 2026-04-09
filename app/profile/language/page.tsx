@@ -16,7 +16,7 @@ export default async function ProfileLanguagePage() {
         <Link
           href={'/profile' as Route}
           className="inline-flex h-10 w-10 items-center justify-center rounded-full text-primary transition hover:bg-secondary"
-          aria-label="Назад"
+          aria-label={translate(locale, 'common.back')}
         >
           <ArrowLeft className="h-6 w-6" />
         </Link>

@@ -9,7 +9,7 @@ import {
   normalizePhone,
   setSessionCookie
 } from '@/lib/auth';
-import { setLocaleCookie } from '@/lib/i18n/server';
+import { getLocaleFromCookie, setLocaleCookie, translate } from '@/lib/i18n/server';
 
 const registerPayloadSchema = z.object({
   method: z.enum(['email', 'phone']),
@@ -19,12 +19,14 @@ const registerPayloadSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const locale = await getLocaleFromCookie();
+
   try {
     const json = await req.json();
     const parsed = registerPayloadSchema.safeParse(json);
 
     if (!parsed.success) {
-      return NextResponse.json({ error: 'РќРµРІР°Р»РёРґРЅС‹Рµ РґР°РЅРЅС‹Рµ' }, { status: 400 });
+      return NextResponse.json({ error: translate(locale, 'common.invalidData') }, { status: 400 });
     }
 
     const { method, identifier, password, accountType } = parsed.data;
@@ -32,11 +34,11 @@ export async function POST(req: Request) {
     const phone = method === 'phone' ? normalizePhone(identifier) : null;
 
     if (method === 'email' && !z.string().email().safeParse(email).success) {
-      return NextResponse.json({ error: 'РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ email' }, { status: 400 });
+      return NextResponse.json({ error: translate(locale, 'validation.auth.email') }, { status: 400 });
     }
 
     if (method === 'phone' && (!phone || phone.length < 8)) {
-      return NextResponse.json({ error: 'РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ С‚РµР»РµС„РѕРЅ' }, { status: 400 });
+      return NextResponse.json({ error: translate(locale, 'validation.auth.phone') }, { status: 400 });
     }
 
     const existingUser = await prisma.user.findFirst({
@@ -49,7 +51,9 @@ export async function POST(req: Request) {
     });
 
     if (existingUser) {
-      return NextResponse.json({ error: 'РђРєРєР°СѓРЅС‚ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚' }, { status: 409 });
+      return NextResponse.json({
+        error: locale === 'en' ? 'Account already exists' : locale === 'ky' ? 'Аккаунт мурунтан эле бар' : 'Аккаунт уже существует'
+      }, { status: 409 });
     }
 
     const passwordHash = await hash(password, 10);
@@ -61,7 +65,7 @@ export async function POST(req: Request) {
         passwordHash,
         accountType,
         authMethod: method,
-        language: 'ru'
+        language: locale
       }
     });
 
@@ -88,7 +92,6 @@ export async function POST(req: Request) {
       language: user.language
     });
   } catch {
-    return NextResponse.json({ error: 'РћС€РёР±РєР° СЃРµСЂРІРµСЂР°' }, { status: 500 });
+    return NextResponse.json({ error: translate(locale, 'common.serverError') }, { status: 500 });
   }
 }
-

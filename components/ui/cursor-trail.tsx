@@ -5,6 +5,9 @@ import { useEffect, useRef } from 'react';
 type TrailPoint = {
   x: number;
   y: number;
+  life: number;
+  decay: number;
+  hue: number;
 };
 
 type Sparkle = {
@@ -14,10 +17,12 @@ type Sparkle = {
   alpha: number;
   life: number;
   decay: number;
+  hue: number;
+  driftX: number;
+  driftY: number;
 };
 
-const MAX_POINTS = 18;
-const SPARKLE_INTERVAL_MS = 45;
+const MAX_POINTS = 22;
 
 export function CursorTrail() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -25,10 +30,9 @@ export function CursorTrail() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const mediaQuery = window.matchMedia('(pointer: fine)');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-    if (!mediaQuery.matches || reducedMotion.matches) {
+    if (reducedMotion.matches) {
       return;
     }
 
@@ -40,11 +44,8 @@ export function CursorTrail() {
 
     const points: TrailPoint[] = [];
     const sparkles: Sparkle[] = [];
-    let pointerX = window.innerWidth / 2;
-    let pointerY = window.innerHeight / 2;
-    let isActive = false;
     let animationFrame = 0;
-    let lastSparkleAt = 0;
+    let hueSeed = 0;
 
     const resize = () => {
       const ratio = window.devicePixelRatio || 1;
@@ -55,30 +56,46 @@ export function CursorTrail() {
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
     };
 
-    const pushPoint = (x: number, y: number) => {
-      points.unshift({ x, y });
+    const addPoint = (x: number, y: number) => {
+      hueSeed = (hueSeed + 11) % 360;
+
+      points.unshift({
+        x,
+        y,
+        life: 1,
+        decay: 0.06,
+        hue: hueSeed
+      });
+
       if (points.length > MAX_POINTS) {
         points.pop();
       }
     };
 
-    const createSparkle = (x: number, y: number) => {
-      sparkles.push({
-        x,
-        y,
-        size: 4 + Math.random() * 4,
-        alpha: 0.8,
-        life: 1,
-        decay: 0.028 + Math.random() * 0.018
-      });
+    const addSparkles = (x: number, y: number) => {
+      for (let index = 0; index < 2; index += 1) {
+        const hue = (hueSeed + index * 26 + Math.random() * 18) % 360;
+
+        sparkles.push({
+          x: x + (Math.random() - 0.5) * 12,
+          y: y + (Math.random() - 0.5) * 12,
+          size: 2.4 + Math.random() * 1.8,
+          alpha: 0.85,
+          life: 1,
+          decay: 0.05 + Math.random() * 0.02,
+          hue,
+          driftX: (Math.random() - 0.5) * 0.45,
+          driftY: -0.2 - Math.random() * 0.35
+        });
+      }
     };
 
     const drawSparkle = (sparkle: Sparkle) => {
       context.save();
       context.translate(sparkle.x, sparkle.y);
       context.globalAlpha = sparkle.alpha;
-      context.strokeStyle = 'rgba(143, 214, 255, 0.95)';
-      context.lineWidth = 1.4;
+      context.strokeStyle = `hsla(${sparkle.hue} 100% 72% / 0.95)`;
+      context.lineWidth = 1;
       context.beginPath();
       context.moveTo(0, -sparkle.size);
       context.lineTo(0, sparkle.size);
@@ -92,31 +109,22 @@ export function CursorTrail() {
       context.restore();
     };
 
-    const render = (timestamp: number) => {
+    const render = () => {
       context.clearRect(0, 0, window.innerWidth, window.innerHeight);
-
-      if (isActive) {
-        pushPoint(pointerX, pointerY);
-
-        if (timestamp - lastSparkleAt >= SPARKLE_INTERVAL_MS) {
-          createSparkle(pointerX + (Math.random() - 0.5) * 18, pointerY + (Math.random() - 0.5) * 18);
-          lastSparkleAt = timestamp;
-        }
-      }
 
       if (points.length > 1) {
         context.save();
         context.lineCap = 'round';
         context.lineJoin = 'round';
 
-        for (let index = 0; index < points.length - 1; index += 1) {
+        for (let index = points.length - 1; index >= 1; index -= 1) {
           const current = points[index];
-          const next = points[index + 1];
-          const progress = 1 - index / points.length;
+          const next = points[index - 1];
+          const alpha = Math.min(current.life, next.life) * 0.72;
 
           context.beginPath();
-          context.strokeStyle = `rgba(120, 205, 255, ${progress * 0.7})`;
-          context.lineWidth = 2 + progress * 8;
+          context.strokeStyle = `hsla(${next.hue} 100% 72% / ${alpha})`;
+          context.lineWidth = 0.8 + next.life * 1.6;
           context.moveTo(current.x, current.y);
           context.lineTo(next.x, next.y);
           context.stroke();
@@ -125,11 +133,20 @@ export function CursorTrail() {
         context.restore();
       }
 
+      for (let index = points.length - 1; index >= 0; index -= 1) {
+        points[index].life -= points[index].decay;
+
+        if (points[index].life <= 0) {
+          points.splice(index, 1);
+        }
+      }
+
       for (let index = sparkles.length - 1; index >= 0; index -= 1) {
         const sparkle = sparkles[index];
         sparkle.life -= sparkle.decay;
-        sparkle.alpha = Math.max(sparkle.life, 0);
-        sparkle.y -= 0.15;
+        sparkle.alpha = Math.max(sparkle.life * 0.95, 0);
+        sparkle.x += sparkle.driftX;
+        sparkle.y += sparkle.driftY;
 
         if (sparkle.life <= 0) {
           sparkles.splice(index, 1);
@@ -139,47 +156,33 @@ export function CursorTrail() {
         drawSparkle(sparkle);
       }
 
-      if (!isActive && points.length) {
-        points.pop();
-      }
-
       animationFrame = window.requestAnimationFrame(render);
     };
 
     const handlePointerMove = (event: PointerEvent) => {
-      pointerX = event.clientX;
-      pointerY = event.clientY;
-      isActive = true;
+      addPoint(event.clientX, event.clientY);
+      addSparkles(event.clientX, event.clientY);
     };
 
-    const handlePointerLeave = () => {
-      isActive = false;
+    const handlePointerDown = (event: PointerEvent) => {
+      addPoint(event.clientX, event.clientY);
+      addSparkles(event.clientX, event.clientY);
     };
 
     resize();
     window.addEventListener('resize', resize);
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
-    window.addEventListener('pointerdown', handlePointerMove, { passive: true });
-    window.addEventListener('pointerleave', handlePointerLeave);
-    window.addEventListener('blur', handlePointerLeave);
+    window.addEventListener('pointerdown', handlePointerDown, { passive: true });
     animationFrame = window.requestAnimationFrame(render);
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('resize', resize);
       window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerdown', handlePointerMove);
-      window.removeEventListener('pointerleave', handlePointerLeave);
-      window.removeEventListener('blur', handlePointerLeave);
+      window.removeEventListener('pointerdown', handlePointerDown);
       context.clearRect(0, 0, window.innerWidth, window.innerHeight);
     };
   }, []);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-[70] hidden md:block"
-    />
-  );
+  return <canvas ref={canvasRef} aria-hidden="true" className="pointer-events-none fixed inset-0 z-[70]" />;
 }

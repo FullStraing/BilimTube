@@ -1,8 +1,7 @@
-﻿import type { Prisma } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import { getActiveChildIdForUser } from '@/lib/auth';
+import { ENTERTAINMENT_CATEGORIES } from '@/lib/categories';
 import { prisma } from '@/lib/prisma';
-
-const ENTERTAINMENT_CATEGORIES = ['РњСѓР»СЊС‚С„РёР»СЊРјС‹', 'РРіСЂС‹', 'Р Р°Р·РІР»РµС‡РµРЅРёСЏ'];
 
 export type ActiveChildPolicy = {
   id: string;
@@ -38,10 +37,9 @@ export function buildVideoPolicyClauses(policy: ActiveChildPolicy | null): Prism
 
   if (policy.educationalOnly) {
     clauses.push({
-      category: { notIn: ENTERTAINMENT_CATEGORIES }
+      category: { notIn: [...ENTERTAINMENT_CATEGORIES] }
     });
   }
 
   return clauses;
 }
-

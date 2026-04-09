@@ -1,4 +1,11 @@
-﻿export function GoogleAuthButton({ mode }: { mode: 'login' | 'register' }) {
+'use client';
+
+import { useLocale } from '@/components/i18n/locale-provider';
+import { translate } from '@/lib/i18n/messages';
+
+export function GoogleAuthButton({ mode }: { mode: 'login' | 'register' }) {
+  const locale = useLocale();
+
   return (
     <a
       href={`/api/auth/google/start?mode=${mode}`}
@@ -10,8 +17,7 @@
       >
         G
       </span>
-      Продолжить через Google
+      {translate(locale, 'auth.googleContinue')}
     </a>
   );
 }
-

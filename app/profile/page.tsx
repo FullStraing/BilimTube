@@ -4,6 +4,7 @@ import { ChevronRight, Globe, History, Settings, Shield, User, UserRound } from 
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { LogoutButton } from '@/components/profile/logout-button';
+import { localizeCategoryName } from '@/lib/categories';
 import { toTitleCase } from '@/lib/text';
 import { MainNavigation } from '@/components/layout/main-navigation';
 import { PageHeader } from '@/components/layout/page-header';
@@ -63,9 +64,11 @@ export default async function ProfilePage() {
                 <div className="min-w-0">
                   <p className="truncate text-[28px] font-bold leading-none text-primary sm:text-[40px]">{toTitleCase(child.name)}</p>
                   <p className="mt-2 text-[20px] text-primary sm:text-[22px]">
-                    {child.age} лет • {child.allowedAgeGroups.join(', ')}
+                    {child.age} {translate(locale, 'common.years')} • {child.allowedAgeGroups.join(', ')}
                   </p>
-                  <p className="truncate text-[14px] text-primary/80 sm:text-[16px]">{user?.email ?? user?.phone ?? 'Аккаунт родителя'}</p>
+                  <p className="truncate text-[14px] text-primary/80 sm:text-[16px]">
+                    {user?.email ?? user?.phone ?? translate(locale, 'profile.parentAccount')}
+                  </p>
                 </div>
               </div>
 
@@ -74,7 +77,7 @@ export default async function ProfilePage() {
                 <div className="mt-2 flex flex-wrap gap-2">
                   {child.interests.map((interest) => (
                     <span key={interest} className="rounded-full bg-secondary px-3 py-1 text-[16px] font-semibold text-primary sm:px-4 sm:text-[16px]">
-                      {interest}
+                      {localizeCategoryName(interest, locale)}
                     </span>
                   ))}
                 </div>

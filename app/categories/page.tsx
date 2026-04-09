@@ -1,4 +1,4 @@
-﻿import type { Route } from 'next';
+import type { Route } from 'next';
 import Link from 'next/link';
 import {
   Calculator,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { localizeCategoryName } from '@/lib/categories';
 import { prisma } from '@/lib/prisma';
 import { MainNavigation } from '@/components/layout/main-navigation';
 import { HeaderProfileLink, PageHeader } from '@/components/layout/page-header';
@@ -22,16 +23,16 @@ import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { buildVideoLanguageWhere } from '@/lib/video-language';
 
 const CATEGORY_PRESET = [
-  { name: 'Наука', Icon: Microscope },
-  { name: 'Математика', Icon: Calculator },
-  { name: 'Языки', Icon: Languages },
-  { name: 'Искусство', Icon: Palette },
-  { name: 'Музыка', Icon: Music2 },
-  { name: 'Спорт', Icon: Volleyball },
-  { name: 'Мультфильмы', Icon: Tv },
-  { name: 'Игры', Icon: Gamepad2 },
-  { name: 'Творчество', Icon: Sparkles },
-  { name: 'Природа', Icon: Leaf }
+  { name: '?????', Icon: Microscope },
+  { name: '??????????', Icon: Calculator },
+  { name: '?????', Icon: Languages },
+  { name: '?????????', Icon: Palette },
+  { name: '??????', Icon: Music2 },
+  { name: '?????', Icon: Volleyball },
+  { name: '???????????', Icon: Tv },
+  { name: '????', Icon: Gamepad2 },
+  { name: '??????????', Icon: Sparkles },
+  { name: '???????', Icon: Leaf }
 ] as const;
 
 export default async function CategoriesPage() {
@@ -102,7 +103,7 @@ export default async function CategoriesPage() {
                 className="rounded-[20px] border border-border bg-card px-3 py-4 text-center shadow-card transition hover:-translate-y-0.5 hover:brightness-[0.99] sm:px-4 sm:py-5"
               >
                 <category.Icon className="mx-auto h-10 w-10 text-primary sm:h-12 sm:w-12" />
-                <p className="mt-3 break-words text-[18px] font-bold leading-tight text-primary sm:text-[24px] lg:text-[22px]">{category.name}</p>
+                <p className="mt-3 break-words text-[18px] font-bold leading-tight text-primary sm:text-[24px] lg:text-[22px]">{localizeCategoryName(category.name, locale)}</p>
                 <p className="mt-1 text-[16px] text-primary/90 sm:text-[18px] lg:text-[17px]">
                   {translate(locale, 'categories.videoCount', { count: category.count })}
                 </p>
@@ -114,4 +115,3 @@ export default async function CategoriesPage() {
     </div>
   );
 }
-

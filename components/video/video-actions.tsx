@@ -1,8 +1,10 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { Heart, Share2 } from 'lucide-react';
+import { useLocale } from '@/components/i18n/locale-provider';
 import { useToast } from '@/components/ui/use-toast';
+import { translate } from '@/lib/i18n/messages';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -12,6 +14,7 @@ type Props = {
 };
 
 export function VideoActions({ videoId, videoSlug, initialIsFavorite }: Props) {
+  const locale = useLocale();
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
   const [isPending, setIsPending] = useState(false);
   const { toast } = useToast();
@@ -26,22 +29,22 @@ export function VideoActions({ videoId, videoSlug, initialIsFavorite }: Props) {
 
       if (response.status === 401) {
         toast({
-          title: 'РќСѓР¶РµРЅ РІС…РѕРґ',
-          description: 'Р’РѕР№РґРёС‚Рµ РІ Р°РєРєР°СѓРЅС‚, С‡С‚РѕР±С‹ РґРѕР±Р°РІР»СЏС‚СЊ РІ РёР·Р±СЂР°РЅРЅРѕРµ.'
+          title: translate(locale, 'video.needLoginTitle'),
+          description: translate(locale, 'video.needLoginDescription')
         });
         return;
       }
 
       if (!response.ok) {
-        throw new Error('РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ РёР·Р±СЂР°РЅРЅРѕРµ');
+        throw new Error(translate(locale, 'video.favoriteUpdateFailed'));
       }
 
       const result = (await response.json()) as { isFavorite: boolean };
       setIsFavorite(result.isFavorite);
     } catch {
       toast({
-        title: 'РћС€РёР±РєР°',
-        description: 'РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ РёР·Р±СЂР°РЅРЅРѕРµ.'
+        title: translate(locale, 'quiz.errorTitle'),
+        description: translate(locale, 'video.favoriteUpdateFailed')
       });
     } finally {
       setIsPending(false);
@@ -60,13 +63,13 @@ export function VideoActions({ videoId, videoSlug, initialIsFavorite }: Props) {
       }
       await navigator.clipboard.writeText(shareUrl);
       toast({
-        title: 'РЎСЃС‹Р»РєР° СЃРєРѕРїРёСЂРѕРІР°РЅР°',
-        description: 'РћС‚РїСЂР°РІСЊС‚Рµ РµРµ С‚РѕРјСѓ, СЃ РєРµРј С…РѕС‚РёС‚Рµ РїРѕРґРµР»РёС‚СЊСЃСЏ РІРёРґРµРѕ.'
+        title: translate(locale, 'video.shareCopiedTitle'),
+        description: translate(locale, 'video.shareCopiedDescription')
       });
     } catch {
       toast({
-        title: 'РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕРґРµР»РёС‚СЊСЃСЏ',
-        description: 'РџРѕРїСЂРѕР±СѓР№С‚Рµ СЃРЅРѕРІР°.'
+        title: translate(locale, 'video.shareFailedTitle'),
+        description: translate(locale, 'video.shareFailedDescription')
       });
     }
   };
@@ -80,9 +83,9 @@ export function VideoActions({ videoId, videoSlug, initialIsFavorite }: Props) {
         className={cn(
           'grid h-14 w-14 place-items-center rounded-[18px] transition',
           isFavorite ? 'bg-primary text-white hover:brightness-110' : 'bg-secondary text-primary hover:brightness-95',
-          isPending && 'opacity-70',
+          isPending && 'opacity-70'
         )}
-        aria-label="Р”РѕР±Р°РІРёС‚СЊ РІ РёР·Р±СЂР°РЅРЅРѕРµ"
+        aria-label={translate(locale, 'video.favoriteAria')}
       >
         <Heart className={cn('h-6 w-6', isFavorite && 'fill-current')} />
       </button>
@@ -90,11 +93,10 @@ export function VideoActions({ videoId, videoSlug, initialIsFavorite }: Props) {
         type="button"
         onClick={handleShare}
         className="grid h-14 w-14 place-items-center rounded-[18px] bg-secondary text-primary transition hover:brightness-95"
-        aria-label="РџРѕРґРµР»РёС‚СЊСЃСЏ"
+        aria-label={translate(locale, 'video.shareAria')}
       >
         <Share2 className="h-6 w-6" />
       </button>
     </div>
   );
 }
-

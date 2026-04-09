@@ -1,12 +1,14 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  const locale = await getLocaleFromCookie();
   const user = await getCurrentUserFromSession();
   if (!user) {
     return NextResponse.json({ ok: true });
@@ -28,7 +30,7 @@ export async function POST(
   });
 
   if (!video) {
-    return NextResponse.json({ error: 'Видео не найдено' }, { status: 404 });
+    return NextResponse.json({ error: translate(locale, 'common.videoNotFound') }, { status: 404 });
   }
 
   await prisma.watchHistory.upsert({

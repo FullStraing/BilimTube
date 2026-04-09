@@ -2,6 +2,8 @@ import type { Route } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Clock3 } from 'lucide-react';
+import { localizeCategoryName } from '@/lib/categories';
+import { useLocale } from '@/components/i18n/locale-provider';
 import { formatDuration, formatViews } from '@/lib/video-format';
 import type { VideoListItem } from '@/types/video';
 
@@ -11,6 +13,7 @@ type Props = {
 };
 
 export function VideoCard({ video }: Props) {
+  const locale = useLocale();
   const isShort = video.contentType === 'SHORT';
 
   return (
@@ -60,10 +63,10 @@ export function VideoCard({ video }: Props) {
         </div>
       </div>
       <div className="space-y-2.5 p-4">
-        <div className="inline-flex rounded-full bg-secondary px-3 py-1 text-[12px] font-semibold text-primary/85">{video.category}</div>
+        <div className="inline-flex rounded-full bg-secondary px-3 py-1 text-[12px] font-semibold text-primary/85">{localizeCategoryName(video.category, locale)}</div>
         <h3 className="line-clamp-2 text-[20px] font-bold leading-tight text-primary sm:text-[22px]">{video.title}</h3>
         <p className="line-clamp-2 text-[14px] leading-6 text-primary/85 sm:text-[15px]">{video.description}</p>
-        <p className="text-[13px] text-primary/72 sm:text-[14px]">{formatViews(video.viewsCount)}</p>
+        <p className="text-[13px] text-primary/72 sm:text-[14px]">{formatViews(video.viewsCount, locale)}</p>
       </div>
     </Link>
   );

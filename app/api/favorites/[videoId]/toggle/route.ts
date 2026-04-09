@@ -1,18 +1,27 @@
 ﻿import { NextResponse } from 'next/server';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
+import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ videoId: string }> }
 ) {
+  const locale = await getLocaleFromCookie();
   const user = await getCurrentUserFromSession();
   if (!user) {
-    return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+    return NextResponse.json({ error: translate(locale, 'common.notAuthorized') }, { status: 401 });
   }
   const activeChildId = await getActiveChildIdForUser(user.id);
   if (!activeChildId) {
-    return NextResponse.json({ error: 'Сначала создайте или выберите профиль ребенка' }, { status: 409 });
+    return NextResponse.json({
+      error:
+        locale === 'en'
+          ? 'Create or select a child profile first'
+          : locale === 'ky'
+            ? 'Адегенде бала профилин түзүңүз же тандаңыз'
+            : 'Сначала создайте или выберите профиль ребенка'
+    }, { status: 409 });
   }
 
   const { videoId } = await params;
@@ -23,7 +32,7 @@ export async function POST(
   });
 
   if (!video) {
-    return NextResponse.json({ error: 'Видео не найдено' }, { status: 404 });
+    return NextResponse.json({ error: translate(locale, 'common.videoNotFound') }, { status: 404 });
   }
 
   const existing = await prisma.favorite.findUnique({

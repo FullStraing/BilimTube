@@ -1,27 +1,29 @@
-﻿import type { Route } from 'next';
+import type { Route } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Clock3, Film, PlaySquare } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
+import { localizeCategoryName } from '@/lib/categories';
 import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
 import { formatDuration, formatViews } from '@/lib/video-format';
 
-function formatWatchedAt(value: Date) {
+function formatWatchedAt(value: Date, locale: 'ru' | 'en' | 'ky') {
   const diffMs = Date.now() - value.getTime();
   const diffMin = Math.floor(diffMs / (1000 * 60));
 
-  if (diffMin < 1) return 'только что';
-  if (diffMin < 60) return `${diffMin} мин назад`;
+  if (diffMin < 1) return translate(locale, 'common.justNow');
+  if (diffMin < 60) return translate(locale, 'common.minutesAgo', { count: diffMin });
 
   const diffHours = Math.floor(diffMin / 60);
-  if (diffHours < 24) return `${diffHours} ч назад`;
+  if (diffHours < 24) return translate(locale, 'common.hoursAgo', { count: diffHours });
 
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 30) return `${diffDays} дн назад`;
+  if (diffDays < 30) return translate(locale, 'common.daysAgo', { count: diffDays });
 
-  return value.toLocaleDateString('ru-RU');
+  const formatLocale = locale === 'ky' ? 'ky-KG' : locale === 'en' ? 'en-US' : 'ru-RU';
+  return value.toLocaleDateString(formatLocale);
 }
 
 export default async function ProfileHistoryPage() {
@@ -61,7 +63,7 @@ export default async function ProfileHistoryPage() {
         <Link
           href={'/profile' as Route}
           className="inline-flex h-10 w-10 items-center justify-center rounded-full text-primary transition hover:bg-secondary"
-          aria-label="Назад"
+          aria-label={translate(locale, 'common.back')}
         >
           <ArrowLeft className="h-6 w-6" />
         </Link>
@@ -86,8 +88,19 @@ export default async function ProfileHistoryPage() {
                   href={`/video/${item.video.slug}` as Route}
                   className="flex gap-3 rounded-[16px] border border-border bg-card p-3 shadow-card transition hover:brightness-[0.99]"
                 >
-                  <div className="relative h-[96px] w-[140px] shrink-0 overflow-hidden rounded-xl bg-muted">
-                    <Image src={item.video.thumbnailUrl} alt={item.video.title} fill className="object-cover" sizes="160px" />
+                  <div className={`relative shrink-0 overflow-hidden rounded-xl bg-muted ${isShort ? 'h-[124px] w-[88px]' : 'h-[96px] w-[140px]'}`}>
+                    {isShort ? (
+                      <>
+                        <Image src={item.video.thumbnailUrl} alt="" fill aria-hidden="true" className="object-cover opacity-30 blur-xl scale-110" sizes="96px" />
+                        <div className="absolute inset-0 p-1.5">
+                          <div className="relative h-full w-full overflow-hidden rounded-[10px] bg-black/10">
+                            <Image src={item.video.thumbnailUrl} alt={item.video.title} fill className="object-contain" sizes="96px" />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <Image src={item.video.thumbnailUrl} alt={item.video.title} fill className="object-cover" sizes="160px" />
+                    )}
                     <div className="absolute right-1 top-1 rounded-full bg-[#0AC95E] px-2 py-0.5 text-[12px] font-bold text-white">
                       {item.video.ageGroup}
                     </div>
@@ -100,13 +113,13 @@ export default async function ProfileHistoryPage() {
                     </div>
 
                     <p className="line-clamp-2 text-[20px] font-bold leading-tight text-primary">{item.video.title}</p>
-                    <p className="mt-1 text-[16px] text-primary/85">{item.video.category}</p>
+                    <p className="mt-1 text-[16px] text-primary/85">{localizeCategoryName(item.video.category, locale)}</p>
                     <p className="text-[15px] text-primary/75">
-                      {formatDuration(item.video.durationSec)} • {formatViews(item.video.viewsCount)}
+                      {formatDuration(item.video.durationSec)} � {formatViews(item.video.viewsCount, locale)}
                     </p>
                     <p className="mt-1 inline-flex items-center gap-1 text-[14px] text-primary/70">
                       <Clock3 className="h-4 w-4" />
-                      {formatWatchedAt(item.watchedAt)}
+                      {formatWatchedAt(item.watchedAt, locale)}
                     </p>
                   </div>
                 </Link>
@@ -118,4 +131,3 @@ export default async function ProfileHistoryPage() {
     </div>
   );
 }
-

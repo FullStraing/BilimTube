@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { localizeCategoryName } from '@/lib/categories';
 import { CategoryChipSlider } from '@/components/catalog/category-chip-slider';
 import { VideoCard } from '@/components/video/video-card';
 import { localizeVideoList } from '@/lib/content-localization';
@@ -65,14 +66,14 @@ export default async function SearchPage({
           <Link
             href={'/categories' as Route}
             className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-primary shadow-card transition hover:bg-secondary"
-            aria-label="Назад"
+            aria-label={translate(locale, 'common.back')}
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
 
           <div className="min-w-0">
             <h1 className="text-[28px] font-bold leading-tight text-primary sm:text-[34px]">
-              {category ? category : translate(locale, 'home.allCategories')}
+              {category ? localizeCategoryName(category, locale) : translate(locale, 'home.allCategories')}
             </h1>
             <p className="mt-1 text-[15px] text-primary/75 sm:text-[16px]">
               {translate(locale, 'categories.videoCount', { count: localizedVideos.length })}
@@ -100,7 +101,7 @@ export default async function SearchPage({
             </section>
           ) : (
             <div className="rounded-[22px] border border-border bg-card p-5 text-[16px] text-primary/80 shadow-card">
-              Видео в этой категории пока нет.
+              {translate(locale, 'categories.empty')}
             </div>
           )}
         </div>

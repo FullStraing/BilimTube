@@ -5,6 +5,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Check, ChevronDown, Loader2, Volume2, VolumeX, X } from 'lucide-react';
 import { useLocale } from '@/components/i18n/locale-provider';
 import { localizeVideoList } from '@/lib/content-localization';
+import { localizeCategoryName } from '@/lib/categories';
 import { translate } from '@/lib/i18n/messages';
 import { formatDuration, formatViews } from '@/lib/video-format';
 import { insertGamesIntoShorts } from '@/features/shorts/games/data';
@@ -89,7 +90,7 @@ function ShortCard({
             <h2 className="line-clamp-2 text-[24px] font-bold leading-tight">{item.title}</h2>
             <p className="mt-1 line-clamp-2 text-[15px] text-white/85">{item.description}</p>
             <p className="mt-2 text-[14px] text-white/80">
-              {item.category} • {formatDuration(item.durationSec)} • {formatViews(item.viewsCount)}
+              {localizeCategoryName(item.category, locale)} ? {formatDuration(item.durationSec)} ? {formatViews(item.viewsCount, locale)}
             </p>
           </div>
 
@@ -164,7 +165,7 @@ export function ShortsFeed() {
     }
 
     if (normalizedSelectedCategories.length === 1) {
-      return normalizedSelectedCategories[0];
+      return localizeCategoryName(normalizedSelectedCategories[0], locale);
     }
 
     return `${normalizedSelectedCategories.length} ${translate(locale, 'shorts.categoriesSelected')}`;
@@ -342,7 +343,7 @@ export function ShortsFeed() {
                         }`}
                       >
                         <div className="min-w-0">
-                          <p className="truncate text-[14px] font-semibold">{category.name}</p>
+                          <p className="truncate text-[14px] font-semibold">{localizeCategoryName(category.name, locale)}</p>
                           <p className={`text-[12px] ${checked ? 'text-white/75' : 'text-primary/65'}`}>{category.count}</p>
                         </div>
                         <span

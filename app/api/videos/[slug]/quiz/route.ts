@@ -1,15 +1,17 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  const locale = await getLocaleFromCookie();
   const user = await getCurrentUserFromSession();
   if (!user) {
-    return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+    return NextResponse.json({ error: translate(locale, 'common.notAuthorized') }, { status: 401 });
   }
 
   const { slug } = await params;
@@ -50,11 +52,11 @@ export async function GET(
   });
 
   if (!video) {
-    return NextResponse.json({ error: 'Видео не найдено' }, { status: 404 });
+    return NextResponse.json({ error: translate(locale, 'common.videoNotFound') }, { status: 404 });
   }
 
   if (!video.quiz) {
-    return NextResponse.json({ error: 'Тест пока не добавлен' }, { status: 404 });
+    return NextResponse.json({ error: translate(locale, 'quiz.notAddedTitle') }, { status: 404 });
   }
 
   return NextResponse.json({

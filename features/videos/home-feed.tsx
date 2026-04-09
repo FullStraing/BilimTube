@@ -1,10 +1,11 @@
-﻿'use client';
+'use client';
 
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
 import { VideoCard } from '@/components/video/video-card';
 import { useLocale } from '@/components/i18n/locale-provider';
+import { localizeCategoryName } from '@/lib/categories';
 import { localizeVideoList } from '@/lib/content-localization';
 import { translate } from '@/lib/i18n/messages';
 import type { VideoListItem } from '@/types/video';
@@ -55,14 +56,8 @@ export function HomeFeed() {
     queryFn: fetchCategories
   });
 
-  const categories = useMemo(
-    () => [{ name: 'all', count: 0 }, ...(categoryQuery.data ?? [])],
-    [categoryQuery.data],
-  );
-  const localizedVideos = useMemo(
-    () => localizeVideoList(videoQuery.data ?? [], locale),
-    [videoQuery.data, locale]
-  );
+  const categories = useMemo(() => [{ name: 'all', count: 0 }, ...(categoryQuery.data ?? [])], [categoryQuery.data]);
+  const localizedVideos = useMemo(() => localizeVideoList(videoQuery.data ?? [], locale), [videoQuery.data, locale]);
 
   return (
     <div className="space-y-4">
@@ -85,7 +80,7 @@ export function HomeFeed() {
           >
             {categories.map((item) => (
               <option key={item.name} value={item.name}>
-                {item.name === 'all' ? translate(locale, 'home.allCategories') : item.name}
+                {item.name === 'all' ? translate(locale, 'home.allCategories') : localizeCategoryName(item.name, locale)}
               </option>
             ))}
           </select>
@@ -138,4 +133,3 @@ export function HomeFeed() {
     </div>
   );
 }
-

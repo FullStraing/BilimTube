@@ -1,7 +1,11 @@
-﻿import type { Route } from 'next';
+﻿'use client';
+
+import type { Route } from 'next';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { useLocale } from '@/components/i18n/locale-provider';
+import { translate } from '@/lib/i18n/messages';
 
 type PageHeaderProps = {
   left?: ReactNode;
@@ -25,11 +29,13 @@ export function PageHeader({ left, center, right, centerAlign = 'center' }: Page
 }
 
 export function HeaderBackLink({ href }: { href: Route }) {
+  const locale = useLocale();
+
   return (
     <Link
       href={href}
       className="inline-flex h-10 w-10 items-center justify-center rounded-full text-primary transition hover:bg-secondary"
-      aria-label="Назад"
+      aria-label={translate(locale, 'common.back')}
     >
       <ArrowLeft className="h-6 w-6" />
     </Link>
@@ -37,14 +43,15 @@ export function HeaderBackLink({ href }: { href: Route }) {
 }
 
 export function HeaderProfileLink({ letter }: { letter: string }) {
+  const locale = useLocale();
+
   return (
     <Link
       href={'/parent/profiles' as Route}
       className="grid h-12 w-12 place-items-center rounded-2xl bg-[#F4619A] text-[30px] font-bold text-white"
-      aria-label="Профили"
+      aria-label={translate(locale, 'parentProfiles.header')}
     >
       {letter}
     </Link>
   );
 }
-
