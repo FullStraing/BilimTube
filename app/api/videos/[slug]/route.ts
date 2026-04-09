@@ -2,6 +2,7 @@
 import { prisma } from '@/lib/prisma';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { getDemoLongVideoBySlug } from '@/lib/demo-videos';
 import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 
 export async function GET(
@@ -29,11 +30,17 @@ export async function GET(
       thumbnailUrl: true,
       videoUrl: true,
       durationSec: true,
-      viewsCount: true
+      viewsCount: true,
+      contentType: true
     }
   });
 
   if (!video) {
+    const demoVideo = getDemoLongVideoBySlug(slug, locale);
+    if (demoVideo) {
+      return NextResponse.json({ ...demoVideo, isFavorite: false });
+    }
+
     return NextResponse.json({ error: translate(locale, 'common.videoNotFound') }, { status: 404 });
   }
 

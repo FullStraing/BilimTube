@@ -7,6 +7,7 @@ import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
 import { localizeVideo, localizeVideoList } from '@/lib/content-localization';
 import { localizeCategoryName } from '@/lib/categories';
+import { getDemoLongVideoBySlug, getSimilarDemoLongVideos } from '@/lib/demo-videos';
 import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
 import { formatDuration, formatViews } from '@/lib/video-format';
@@ -36,7 +37,7 @@ export default async function VideoPage({
       })
     : null;
 
-  const video = await prisma.video.findFirst({
+  const dbVideo = await prisma.video.findFirst({
     where: {
       AND: [{ slug, isPublished: true }, ...policyClauses]
     },
@@ -56,47 +57,52 @@ export default async function VideoPage({
     }
   });
 
+  const fallbackVideo = getDemoLongVideoBySlug(slug, locale);
+  const video = dbVideo ? localizeVideo(dbVideo, locale) : fallbackVideo;
+  const isDemoVideo = !dbVideo && Boolean(fallbackVideo);
+
   if (!video) {
     notFound();
   }
-  const localizedVideo = localizeVideo(video, locale);
   const isShort = video.contentType === 'SHORT';
 
-  const similar = await prisma.video.findMany({
-    where: {
-      AND: [
-        { isPublished: true, id: { not: video.id } },
-        { language: video.language },
-        ...policyClauses,
-        { OR: [{ category: video.category }, { ageGroup: video.ageGroup }] }
-      ]
-    },
-    take: 8,
-    orderBy: [{ viewsCount: 'desc' }, { createdAt: 'desc' }],
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      description: true,
-      category: true,
-      language: true,
-      ageGroup: true,
-      thumbnailUrl: true,
-      durationSec: true,
-      viewsCount: true,
-      contentType: true
-    }
-  });
-  const localizedSimilar = localizeVideoList(similar, locale);
+  const similar = dbVideo
+    ? await prisma.video.findMany({
+        where: {
+          AND: [
+            { isPublished: true, id: { not: dbVideo.id } },
+            { language: dbVideo.language },
+            ...policyClauses,
+            { OR: [{ category: dbVideo.category }, { ageGroup: dbVideo.ageGroup }] }
+          ]
+        },
+        take: 8,
+        orderBy: [{ viewsCount: 'desc' }, { createdAt: 'desc' }],
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          description: true,
+          category: true,
+          language: true,
+          ageGroup: true,
+          thumbnailUrl: true,
+          durationSec: true,
+          viewsCount: true,
+          contentType: true
+        }
+      })
+    : [];
+  const localizedSimilar = similar.length ? localizeVideoList(similar, locale) : getSimilarDemoLongVideos(slug, locale);
 
   let isFavorite = false;
-  if (user && activeChildId) {
+  if (dbVideo && user && activeChildId) {
     const favorite = await prisma.favorite.findUnique({
       where: {
         userId_childId_videoId: {
           userId: user.id,
           childId: activeChildId,
-          videoId: video.id
+          videoId: dbVideo.id
         }
       },
       select: { id: true }
@@ -108,7 +114,7 @@ export default async function VideoPage({
 
   return (
     <div className="min-h-screen bg-background">
-      <WatchTracker slug={video.slug} />
+      {!isDemoVideo && <WatchTracker slug={video.slug} />}
       <PageHeader
         center={<span className="text-[36px] font-extrabold leading-none tracking-[0.03em] text-primary sm:text-[40px]">BILIMTUBE</span>}
         right={<HeaderProfileLink letter={profileLetter} />}
@@ -134,32 +140,34 @@ export default async function VideoPage({
               <div className="rounded-[22px] border border-border bg-card p-4 shadow-card lg:p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1">
-                    <h1 className="text-[38px] font-bold leading-tight text-primary lg:text-[44px]">{localizedVideo.title}</h1>
-                    <p className="text-[20px] text-primary/90">{localizeCategoryName(localizedVideo.category, locale)}</p>
+                    <h1 className="text-[38px] font-bold leading-tight text-primary lg:text-[44px]">{video.title}</h1>
+                    <p className="text-[20px] text-primary/90">{localizeCategoryName(video.category, locale)}</p>
                     <p className="text-[18px] text-primary/80">{formatViews(video.viewsCount, locale)}</p>
                   </div>
-                  <VideoActions videoId={video.id} videoSlug={video.slug} initialIsFavorite={isFavorite} />
+                  <VideoActions videoId={video.id} videoSlug={video.slug} initialIsFavorite={isFavorite} allowFavorite={!isDemoVideo} />
                 </div>
 
-                <article className="mt-4 rounded-[20px] border-2 border-[#5FAEE3] bg-secondary p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#EAF6FF] text-primary">
-                      <ScrollText className="h-6 w-6" />
+                {!isDemoVideo && (
+                  <article className="mt-4 rounded-[20px] border-2 border-[#5FAEE3] bg-secondary p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#EAF6FF] text-primary">
+                        <ScrollText className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <p className="text-[30px] font-bold leading-none text-primary lg:text-[34px]">{translate(locale, 'video.quizCtaTitle')}</p>
+                        <p className="mt-1 text-[19px] text-primary/85">{translate(locale, 'video.quizCtaSubtitle')}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[30px] font-bold leading-none text-primary lg:text-[34px]">{translate(locale, 'video.quizCtaTitle')}</p>
-                      <p className="mt-1 text-[19px] text-primary/85">{translate(locale, 'video.quizCtaSubtitle')}</p>
-                    </div>
-                  </div>
-                  <Link
-                    href={`/video/${video.slug}/quiz` as Route}
-                    className="mt-4 flex h-14 w-full items-center justify-center rounded-[18px] bg-primary text-[30px] font-bold text-white transition hover:brightness-110"
-                  >
-                    {translate(locale, 'video.quizCtaButton')}
-                  </Link>
-                </article>
+                    <Link
+                      href={`/video/${video.slug}/quiz` as Route}
+                      className="mt-4 flex h-14 w-full items-center justify-center rounded-[18px] bg-primary text-[30px] font-bold text-white transition hover:brightness-110"
+                    >
+                      {translate(locale, 'video.quizCtaButton')}
+                    </Link>
+                  </article>
+                )}
 
-                <p className="mt-4 text-[20px] leading-relaxed text-primary/90">{localizedVideo.description}</p>
+                <p className="mt-4 text-[20px] leading-relaxed text-primary/90">{video.description}</p>
               </div>
             </div>
 
@@ -196,7 +204,7 @@ export default async function VideoPage({
                         <p className="line-clamp-2 text-[20px] font-bold leading-tight text-primary">{item.title}</p>
                         <p className="mt-1 text-[16px] text-primary/85">{localizeCategoryName(item.category, locale)}</p>
                         <p className="text-[15px] text-primary/75">
-                          {formatDuration(item.durationSec)} ? {formatViews(item.viewsCount, locale)}
+                          {formatDuration(item.durationSec)} • {formatViews(item.viewsCount, locale)}
                         </p>
                       </div>
                     </Link>

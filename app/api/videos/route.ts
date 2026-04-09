@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { getFilteredDemoLongVideos } from '@/lib/demo-videos';
 import { getLocaleFromCookie } from '@/lib/i18n/server';
 import { buildVideoLanguageWhere } from '@/lib/video-language';
 
@@ -45,9 +46,15 @@ export async function GET(req: Request) {
       ageGroup: true,
       thumbnailUrl: true,
       durationSec: true,
-      viewsCount: true
+      viewsCount: true,
+      contentType: true
     }
   });
+
+  if (videos.length === 0) {
+    const demoVideos = getFilteredDemoLongVideos(locale, { q, category, ageGroup, limit });
+    return NextResponse.json(demoVideos.map((video) => ({ ...video, isFavorite: false })));
+  }
 
   if (!user) {
     return NextResponse.json(videos.map((video) => ({ ...video, isFavorite: false })));

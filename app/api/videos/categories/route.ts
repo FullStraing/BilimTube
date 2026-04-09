@@ -2,6 +2,7 @@ import type { ContentType, Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { getCurrentUserFromSession } from '@/lib/auth';
 import { buildVideoPolicyClauses, getActiveChildPolicy } from '@/lib/child-policy';
+import { getDemoLongCategoryCounts } from '@/lib/demo-videos';
 import { getLocaleFromCookie } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
 import { buildVideoLanguageWhere } from '@/lib/video-language';
@@ -28,6 +29,10 @@ export async function GET(req: Request) {
     _count: { _all: true },
     orderBy: { category: 'asc' }
   });
+
+  if (grouped.length === 0 && contentType === 'LONG') {
+    return NextResponse.json(getDemoLongCategoryCounts(locale));
+  }
 
   return NextResponse.json(
     grouped.map((item) => ({

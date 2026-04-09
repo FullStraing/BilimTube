@@ -33,7 +33,7 @@ async function fetchVideos(filters: { q: string; category: string; ageGroup: str
 }
 
 async function fetchCategories() {
-  const response = await fetch('/api/videos/categories', { cache: 'no-store' });
+  const response = await fetch('/api/videos/categories?contentType=LONG', { cache: 'no-store' });
   if (!response.ok) {
     throw new Error('Failed to load categories');
   }

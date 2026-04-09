@@ -7,7 +7,7 @@ export function formatDuration(durationSec: number) {
 }
 
 export function formatViews(viewsCount: number, locale: Locale = 'ru') {
-  const suffix = locale === 'en' ? 'views' : locale === 'ky' ? '?????' : '??????????';
+  const suffix = locale === 'en' ? 'views' : locale === 'ky' ? 'көрүүлөр' : 'просмотров';
 
   if (viewsCount >= 1_000_000) {
     return `${(viewsCount / 1_000_000).toFixed(1)}M ${suffix}`;

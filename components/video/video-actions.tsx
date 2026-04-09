@@ -11,15 +11,17 @@ type Props = {
   videoId: string;
   videoSlug: string;
   initialIsFavorite: boolean;
+  allowFavorite?: boolean;
 };
 
-export function VideoActions({ videoId, videoSlug, initialIsFavorite }: Props) {
+export function VideoActions({ videoId, videoSlug, initialIsFavorite, allowFavorite = true }: Props) {
   const locale = useLocale();
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
   const [isPending, setIsPending] = useState(false);
   const { toast } = useToast();
 
   const handleFavorite = async () => {
+    if (!allowFavorite) return;
     if (isPending) return;
     setIsPending(true);
     try {
@@ -79,11 +81,12 @@ export function VideoActions({ videoId, videoSlug, initialIsFavorite }: Props) {
       <button
         type="button"
         onClick={handleFavorite}
-        disabled={isPending}
+        disabled={isPending || !allowFavorite}
         className={cn(
           'grid h-14 w-14 place-items-center rounded-[18px] transition',
           isFavorite ? 'bg-primary text-white hover:brightness-110' : 'bg-secondary text-primary hover:brightness-95',
-          isPending && 'opacity-70'
+          isPending && 'opacity-70',
+          !allowFavorite && 'cursor-not-allowed opacity-50 hover:brightness-100'
         )}
         aria-label={translate(locale, 'video.favoriteAria')}
       >

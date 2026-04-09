@@ -7,6 +7,7 @@ import { localizeCategoryName } from '@/lib/categories';
 import { CategoryChipSlider } from '@/components/catalog/category-chip-slider';
 import { VideoCard } from '@/components/video/video-card';
 import { localizeVideoList } from '@/lib/content-localization';
+import { getDemoLongCategoryCounts, getFilteredDemoLongVideos } from '@/lib/demo-videos';
 import { getLocaleFromCookie, translate } from '@/lib/i18n/server';
 import { prisma } from '@/lib/prisma';
 import { buildVideoLanguageWhere } from '@/lib/video-language';
@@ -51,12 +52,16 @@ export default async function SearchPage({
     })
   ]);
 
-  const localizedVideos = localizeVideoList(videos, locale);
-  const categories = grouped.map((item) => ({
-    name: item.category,
-    count: item._count._all,
-    href: (`/search?category=${encodeURIComponent(item.category)}` as Route),
-    active: item.category === category
+  const fallbackVideos = videos.length === 0 ? getFilteredDemoLongVideos(locale, { category, limit: 40 }) : [];
+  const fallbackGroups = grouped.length === 0 ? getDemoLongCategoryCounts(locale) : [];
+  const sourceGroups = grouped.length ? grouped.map((item) => ({ name: item.category, count: item._count._all })) : fallbackGroups;
+
+  const localizedVideos = videos.length ? localizeVideoList(videos, locale) : fallbackVideos;
+  const categories = sourceGroups.map((item) => ({
+    name: item.name,
+    count: item.count,
+    href: (`/search?category=${encodeURIComponent(item.name)}` as Route),
+    active: item.name === category
   }));
 
   return (
