@@ -1,6 +1,6 @@
 ﻿import type { Route } from 'next';
 import Link from 'next/link';
-import { ChevronRight, Globe, History, Settings, Shield, User, UserRound } from 'lucide-react';
+import { BarChart3, ChevronRight, ClipboardList, Globe, History, Settings, Shield, User, UserRound } from 'lucide-react';
 import { getActiveChildIdForUser, getCurrentUserFromSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { LogoutButton } from '@/components/profile/logout-button';
@@ -119,6 +119,28 @@ export default async function ProfilePage() {
               <span className="inline-flex items-center gap-3">
                 <Globe className="h-6 w-6" />
                 {translate(locale, 'profile.language')}
+              </span>
+              <ChevronRight className="h-5 w-5" />
+            </Link>
+
+            <Link
+              href={'/survey' as Route}
+              className="flex items-center justify-between rounded-[18px] border border-border bg-card px-4 py-4 text-[18px] font-semibold text-primary shadow-card transition hover:brightness-95"
+            >
+              <span className="inline-flex items-center gap-3">
+                <ClipboardList className="h-6 w-6" />
+                {translate(locale, 'survey.profileLink')}
+              </span>
+              <ChevronRight className="h-5 w-5" />
+            </Link>
+
+            <Link
+              href={'/survey/analytics' as Route}
+              className="flex items-center justify-between rounded-[18px] border border-border bg-card px-4 py-4 text-[18px] font-semibold text-primary shadow-card transition hover:brightness-95"
+            >
+              <span className="inline-flex items-center gap-3">
+                <BarChart3 className="h-6 w-6" />
+                {translate(locale, 'survey.analyticsTitle')}
               </span>
               <ChevronRight className="h-5 w-5" />
             </Link>

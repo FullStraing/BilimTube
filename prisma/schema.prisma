@@ -26,6 +26,7 @@ model User {
   watchHistory WatchHistory[]
   shortViews   ShortView[]
   quizAttempts QuizAttempt[]
+  surveyResponses SurveyResponse[]
 }
 
 model Session {
@@ -56,6 +57,7 @@ model ChildProfile {
   watchHistory     WatchHistory[]
   shortViews       ShortView[]
   quizAttempts     QuizAttempt[]
+  surveyResponses  SurveyResponse[]
 
   @@index([userId])
 }
@@ -202,6 +204,37 @@ model QuizAnswer {
   @@index([attemptId])
 }
 
+model SurveyResponse {
+  id          String         @id @default(cuid())
+  userId      String
+  childId     String?
+  version     Int            @default(1)
+  submittedAt DateTime       @default(now())
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  child       ChildProfile?  @relation(fields: [childId], references: [id], onDelete: SetNull)
+  answers     SurveyAnswer[]
+
+  @@unique([userId, version])
+  @@index([userId, childId, submittedAt])
+}
+
+model SurveyAnswer {
+  id           String             @id @default(cuid())
+  responseId   String
+  questionKey  String
+  questionType SurveyQuestionType
+  ratingValue  Int?
+  textValue    String?
+  choiceValue  String?
+  createdAt    DateTime           @default(now())
+  response     SurveyResponse     @relation(fields: [responseId], references: [id], onDelete: Cascade)
+
+  @@unique([responseId, questionKey])
+  @@index([questionKey])
+}
+
 enum AccountType {
   self
   family
@@ -222,4 +255,10 @@ enum UiLanguage {
 enum ContentType {
   LONG
   SHORT
+}
+
+enum SurveyQuestionType {
+  SCALE
+  TEXT
+  SINGLE_CHOICE
 }
