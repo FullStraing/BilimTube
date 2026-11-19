@@ -22,6 +22,7 @@ import {
   localizeVideo,
   localizeVideoList,
 } from '../lib/content-localization.ts';
+import { isLocale, translate } from '../lib/i18n/messages.ts';
 
 describe('toTitleCase (lib/text.ts)', () => {
   it('capitalizes every word', () => {
@@ -208,6 +209,39 @@ describe('localizeQuiz (lib/content-localization.ts)', () => {
   it('returns the same quiz for Russian and for unknown slugs', () => {
     assert.equal(localizeQuiz('solar-system-for-kids', quiz, 'ru'), quiz);
     assert.equal(localizeQuiz('not-a-real-quiz', quiz, 'en'), quiz);
+  });
+});
+
+describe('i18n helpers (lib/i18n/messages.ts)', () => {
+  it('recognizes only the three supported locales', () => {
+    assert.equal(isLocale('ru'), true);
+    assert.equal(isLocale('en'), true);
+    assert.equal(isLocale('ky'), true);
+    assert.equal(isLocale('de'), false);
+    assert.equal(isLocale(''), false);
+    assert.equal(isLocale(null), false);
+    assert.equal(isLocale(undefined), false);
+  });
+
+  it('translates a key in every locale', () => {
+    assert.equal(translate('ru', 'nav.home'), 'Главная');
+    assert.equal(translate('en', 'nav.home'), 'Home');
+    assert.equal(translate('ky', 'nav.home'), 'Башкы');
+  });
+
+  it('interpolates {vars} into the template', () => {
+    assert.equal(translate('ru', 'home.greeting', { name: 'Эмир' }), 'Привет, Эмир!');
+    assert.equal(translate('en', 'home.greeting', { name: 'Emir' }), 'Hi, Emir!');
+    assert.equal(translate('ky', 'home.greeting', { name: 'Эмир' }), 'Салам, Эмир!');
+    assert.equal(translate('en', 'common.minutesAgo', { count: 5 }), '5 min ago');
+  });
+
+  it('returns the key itself when no locale has it', () => {
+    assert.equal(translate('en', 'no.such.key'), 'no.such.key');
+  });
+
+  it('keeps an unknown placeholder when its var is missing', () => {
+    assert.equal(translate('en', 'home.greeting'), 'Hi, {name}!');
   });
 });
 

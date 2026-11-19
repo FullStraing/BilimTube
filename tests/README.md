@@ -1,9 +1,9 @@
 # Tests
 
 Unit tests for the pure helpers in `lib/` (`text.ts`, `video-format.ts`,
-`categories.ts`, `video-language.ts`, `content-localization.ts`). They cover title casing, duration
+`categories.ts`, `video-language.ts`, `content-localization.ts`, `i18n/messages.ts`). They cover title casing, duration
 and view-count formatting, category localisation, the UI-locale to
-video-language mapping, and video/quiz localisation — no database, no network, no extra dependencies.
+video-language mapping, and video/quiz localisation, and the i18n translate/locale helpers — no database, no network, no extra dependencies.
 
 Run them with Node.js 22.6+ (uses built-in type stripping, no build step):
 
